@@ -1,1 +1,4 @@
-const app = require("./app"); //requiring express
+const express = require("express"); // requiring express
+const dotenv = require("dotenv"); //for accessing envs
+
+const app = express();
