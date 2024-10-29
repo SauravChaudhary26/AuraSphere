@@ -1,0 +1,51 @@
+/* Center and styling for main page container */
+.loginpage {
+    display: flex;
+    justify-content: center;
+    align-items: center; /* Center vertically on the page */
+    min-height: 100vh; /* Full viewport height */
+}
+
+/* Styling for the login container */
+.loginContainer {
+    width: 30%;
+    height: auto;
+    padding: 2% 3%;
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), 0 6px 20px rgba(0, 0, 0, 0.19);
+    background-color: #fff; /* Optional: add background color */
+}
+
+/* Styling for forgot password link */
+.forgotP {
+    display: block; /* Ensures it stays in place for all screen sizes */
+    margin-top: 20px;
+    color: blue;
+    text-align: center;
+}
+
+.create-account-section {
+    margin-top: 15px;
+    padding-left: 17%;
+    margin-bottom: 15px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .loginContainer {
+        width: 60%;
+    }
+}
+
+@media (max-width: 480px) {
+    .loginContainer {
+        width: 90%;
+        padding: 10px;
+    }
+
+    .forgotP {
+        margin-top: 15px;
+        text-align: center;
+    }
+}

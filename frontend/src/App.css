@@ -1,0 +1,6 @@
+/* Hide the built-in show password icon in WebKit browsers (e.g., Chrome, Safari) */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear,
+input[type="password"]::-webkit-textfield-decoration-container {
+    display: none;
+}
