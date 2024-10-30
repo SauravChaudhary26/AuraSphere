@@ -27,7 +27,16 @@ function Login() {
     };
 
     return (
-        <div className="loginpage">
+        <div
+            className="loginpage"
+            style={{
+                backgroundImage: `url(${require("../images/bg-3.png")})`,
+                backgroundSize: "cover", // Adjusts the size of the image
+                backgroundPosition: "center", // Centers the image
+                width: "100vw",
+                height: "100vh",
+            }}
+        >
             <div className="loginContainer">
                 <form>
                     {/* Logo image */}
@@ -90,21 +99,24 @@ function Login() {
                             label="Password"
                         />
                     </FormControl>
-                    <NavLink
-                        style={{ textDecoration: "none" }}
-                        to="/forgot-password"
-                    >
-                        <span className="forgotP">Forgot Password?</span>
-                    </NavLink>
+
+                    <span className="forgotP">
+                        <NavLink
+                            style={{ textDecoration: "none" }}
+                            to="/forgot-password"
+                        >
+                            Forgot Password?
+                        </NavLink>
+                    </span>
 
                     <NavLink>
                         <Button
                             variant="contained"
                             sx={{
-                                backgroundColor: "purple", // purple background
-                                color: "white", // white text color
+                                backgroundColor: "rgb(107, 70, 224)", // primary color
+                                color: "rgb(255, 255, 255)", // white text for contrast
                                 "&:hover": {
-                                    backgroundColor: "darkviolet", // darker purple on hover
+                                    backgroundColor: "rgb(85, 55, 180)", // slightly darker shade for hover effect
                                 },
                                 width: "90%",
                                 mt: "20px",
@@ -113,6 +125,7 @@ function Login() {
                             Login
                         </Button>
                     </NavLink>
+
                     <div className="create-account-section">
                         <span>New on our platform?</span>
                         <span style={{ marginLeft: "4%" }}>
