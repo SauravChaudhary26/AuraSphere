@@ -1,6 +1,27 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
 /* Hide the built-in show password icon in WebKit browsers (e.g., Chrome, Safari) */
 input[type="password"]::-ms-reveal,
 input[type="password"]::-ms-clear,
 input[type="password"]::-webkit-textfield-decoration-container {
     display: none;
+}
+
+/* Fade Transition Styles */
+.fade-enter {
+    opacity: 0;
+}
+.fade-enter-active {
+    opacity: 1;
+    transition: opacity 500ms ease-in;
+}
+.fade-exit {
+    opacity: 1;
+}
+.fade-exit-active {
+    opacity: 0;
+    transition: opacity 500ms ease-out;
 }

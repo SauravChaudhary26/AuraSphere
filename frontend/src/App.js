@@ -4,6 +4,7 @@ import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Signup from "./views/Signup";
 import ForgotPassword from "./views/ForgotPassword";
+import Home from "./views/Home";
 
 const theme = createTheme({
     palette: {
@@ -15,6 +16,10 @@ const theme = createTheme({
 
 const App = () => {
     const router = createBrowserRouter([
+        {
+            path: "/",
+            element: <Home />,
+        },
         {
             path: "/login",
             element: (

@@ -13,7 +13,7 @@ import "./css/Signup.css";
 import Divider from "@mui/material/Divider";
 import { Typography, Box } from "@mui/material";
 import { Facebook, Twitter, GitHub } from "@mui/icons-material";
-import GoogleIcon from "../images/google-icon";
+import GoogleIcon from "../assets/google-icon";
 
 function Signup() {
     const [showPassword, setShowPassword] = React.useState(false);
@@ -30,7 +30,7 @@ function Signup() {
         <div
             className="signup-page"
             style={{
-                backgroundImage: `url(${require("../images/bg-3.png")})`,
+                backgroundImage: `url(${require("../assets/bg-3.png")})`,
                 backgroundSize: "cover", // Adjusts the size of the image
                 backgroundPosition: "center", // Centers the image
                 width: "100vw",
@@ -41,7 +41,7 @@ function Signup() {
                 <form>
                     {/* Logo image */}
                     <img
-                        src={require("../images/logo-design-2.png")}
+                        src={require("../assets/logo-design-2.png")}
                         alt="AuraSphere Logo"
                         style={{ width: "80px", marginBottom: "5px" }}
                     />
