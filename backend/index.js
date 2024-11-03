@@ -1,34 +1,32 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const dotenv = require('dotenv');
+const express = require("express");
+const bodyParser = require("body-parser");
+const cors = require("cors");
+const dotenv = require("dotenv");
 
 // Import routers
-const AuthRouter = require('./Routes/AuthRouter');
-const ProductRouter = require('./Routes/ProductRouter');
+const AuthRouter = require("./routes/authRouter");
 
 // Load environment variables
 dotenv.config();
 
 // Connect to the database
-require('./Models/db');
+require("./db");
 
 // Initialize the Express application
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT;
 
 // Middleware setup
 app.use(cors());
 app.use(bodyParser.json());
 
 // Test route
-app.get('/ping', (req, res) => {
-    res.send('PONG');
+app.get("/ping", (req, res) => {
+    res.send("PONG");
 });
 
 // Define routes
-app.use('/auth', AuthRouter);
-app.use('/products', ProductRouter);
+app.use("/auth", AuthRouter);
 
 // Start the server
 app.listen(PORT, () => {
