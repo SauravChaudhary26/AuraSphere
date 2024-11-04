@@ -21,8 +21,8 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // Test route
-app.get("/ping", (req, res) => {
-    res.send("PONG");
+app.get("/test", (req, res) => {
+    res.send("SERVER IS RUNNING FINE");
 });
 
 // Define routes

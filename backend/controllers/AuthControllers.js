@@ -16,7 +16,7 @@ const signup = async (req, res) => {
         userModel.password = await bcrypt.hash(password, 10);
         await userModel.save();
         res.status(201).json({
-            message: "Signup successfully",
+            message: "Signed up successfully",
             success: true,
         });
     } catch (err) {
@@ -31,30 +31,36 @@ const login = async (req, res) => {
     try {
         const { email, password } = req.body;
         const user = await UserModel.findOne({ email });
-        const errorMsg = "Auth failed email or password is wrong";
+        console.log(user);
         if (!user) {
-            return res.status(403).json({ message: errorMsg, success: false });
+            return res
+                .status(403)
+                .json({ message: "Invalid Email or Password", success: false });
         }
         const isPassEqual = await bcrypt.compare(password, user.password);
+        if (isPassEqual) console.log("correct password");
         if (!isPassEqual) {
-            return res.status(403).json({ message: errorMsg, success: false });
+            return res
+                .status(403)
+                .json({ message: "Wrong Password", success: false });
         }
-        const jwtToken = jwt.sign(
-            { email: user.email, _id: user._id },
-            process.env.JWT_SECRET,
-            { expiresIn: "24h" }
-        );
+
+        // const jwtToken = jwt.sign(
+        //     { email: user.email, _id: user._id },
+        //     process.env.JWT_SECRET,
+        //     { expiresIn: "24h" }
+        // );
 
         res.status(200).json({
-            message: "Login Success",
+            message: "Logged in Successfully",
             success: true,
-            jwtToken,
-            email,
-            name: user.name,
+            // jwtToken,
+            // email,
+            // name: user.name,
         });
     } catch (err) {
         res.status(500).json({
-            message: errorMsg,
+            message: "Internal Server error",
             success: false,
         });
     }
