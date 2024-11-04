@@ -1,4 +1,4 @@
-import React from "react";
+import { React, useState } from "react";
 import TextField from "@mui/material/TextField";
 import IconButton from "@mui/material/IconButton";
 import OutlinedInput from "@mui/material/OutlinedInput";
@@ -8,15 +8,18 @@ import FormControl from "@mui/material/FormControl";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import Button from "@mui/material/Button";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import "./css/Signup.css";
 import Divider from "@mui/material/Divider";
 import { Typography, Box } from "@mui/material";
 import { Facebook, Twitter, GitHub } from "@mui/icons-material";
 import GoogleIcon from "../assets/google-icon";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { handleError, handleSuccess } from "../utils/ToastMessages";
 
 function Signup() {
-    const [showPassword, setShowPassword] = React.useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleClickShowPassword = () => setShowPassword((show) => !show);
     const handleMouseDownPassword = (event) => {
@@ -24,6 +27,65 @@ function Signup() {
     };
     const handleMouseUpPassword = (event) => {
         event.preventDefault();
+    };
+
+    //handling input fields
+    const [userinfo, setuserinfo] = useState({
+        name: "",
+        email: "",
+        password: "",
+        repeatPassword: "",
+    });
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        console.log(name, value);
+        const copyInfo = { ...userinfo };
+        copyInfo[name] = value;
+        setuserinfo(copyInfo);
+    };
+
+    //signup api logic
+    const navigate = useNavigate();
+    const handleSubmit = async (e) => {
+        console.log("submit was pressed");
+
+        e.preventDefault();
+        const { name, email, password, repeatPassword } = userinfo;
+
+        if (!name || !email || !password) {
+            return handleError("All fields are required");
+        } else if (password.length < 5)
+            return handleError("Password must be of minimum 5 characters");
+        else if (password !== repeatPassword)
+            return handleError("Password fields don't match");
+        try {
+            const url = "http://localhost:8080/auth/signup";
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ name, email, password }),
+            });
+
+            const result = await response.json();
+            const { message, success, error } = result;
+
+            if (success) {
+                handleSuccess(message);
+                setTimeout(() => {
+                    navigate("/dashboard");
+                }, 1000);
+            } else if (error) {
+                const details = error?.details[0].message;
+                handleError(details);
+            } else if (!success) {
+                handleError(message);
+            }
+        } catch (error) {
+            handleError(error);
+        }
     };
 
     return (
@@ -38,7 +100,7 @@ function Signup() {
             }}
         >
             <div className="signup-Container">
-                <form>
+                <form onSubmit={handleSubmit}>
                     {/* Logo image */}
                     <img
                         src={require("../assets/logo-design-2.png")}
@@ -58,7 +120,9 @@ function Signup() {
                         required
                         id="name"
                         label="Name"
+                        name="name"
                         variant="outlined"
+                        onChange={handleChange}
                         style={{ marginBottom: "20px", width: "90%" }}
                     />
 
@@ -67,7 +131,9 @@ function Signup() {
                         required
                         id="email"
                         label="E-mail"
+                        name="email"
                         variant="outlined"
+                        onChange={handleChange}
                         style={{ marginBottom: "20px", width: "90%" }}
                     />
 
@@ -82,6 +148,8 @@ function Signup() {
                         <OutlinedInput
                             id="outlined-adornment-password"
                             type={showPassword ? "text" : "password"}
+                            name="password"
+                            onChange={handleChange}
                             endAdornment={
                                 <InputAdornment position="end">
                                     <IconButton
@@ -107,29 +175,30 @@ function Signup() {
                         />
                     </FormControl>
                     <TextField
-                        required
                         id="repeat-password"
                         label="Re-enter Password"
                         variant="outlined"
+                        type="password"
+                        name="repeatPassword"
+                        onChange={handleChange}
                         style={{ marginBottom: "10px", width: "90%" }}
                     />
 
-                    <NavLink>
-                        <Button
-                            variant="contained"
-                            sx={{
-                                backgroundColor: "purple", // purple background
-                                color: "white", // white text color
-                                "&:hover": {
-                                    backgroundColor: "darkviolet", // darker purple on hover
-                                },
-                                width: "90%",
-                                mt: "20px",
-                            }}
-                        >
-                            SignUp
-                        </Button>
-                    </NavLink>
+                    <Button
+                        variant="contained"
+                        type="submit"
+                        sx={{
+                            backgroundColor: "purple", // purple background
+                            color: "white", // white text color
+                            "&:hover": {
+                                backgroundColor: "darkviolet", // darker purple on hover
+                            },
+                            width: "90%",
+                            mt: "20px",
+                        }}
+                    >
+                        SignUp
+                    </Button>
                     <div className="create-account-section">
                         <span>Already have an account?</span>
                         <span style={{ marginLeft: "4%" }}>
@@ -180,6 +249,7 @@ function Signup() {
                     </div>
                 </form>
             </div>
+            <ToastContainer></ToastContainer>
         </div>
     );
 }

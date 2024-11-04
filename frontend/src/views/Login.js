@@ -1,4 +1,4 @@
-import React from "react";
+import { React, useState } from "react";
 import TextField from "@mui/material/TextField";
 import IconButton from "@mui/material/IconButton";
 import OutlinedInput from "@mui/material/OutlinedInput";
@@ -8,22 +8,79 @@ import FormControl from "@mui/material/FormControl";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import Button from "@mui/material/Button";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import "./css/Login.css";
 import Divider from "@mui/material/Divider";
 import { Typography, Box } from "@mui/material";
 import { Facebook, Twitter, GitHub } from "@mui/icons-material";
 import GoogleIcon from "../assets/google-icon";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { handleError, handleSuccess } from "../utils/ToastMessages";
 
 function Login() {
-    const [showPassword, setShowPassword] = React.useState(false);
-
+    // show and hide password logic
+    const [showPassword, setShowPassword] = useState(false);
     const handleClickShowPassword = () => setShowPassword((show) => !show);
     const handleMouseDownPassword = (event) => {
         event.preventDefault();
     };
     const handleMouseUpPassword = (event) => {
         event.preventDefault();
+    };
+
+    //handling input fields
+    const [userinfo, setuserinfo] = useState({
+        email: "",
+        password: "",
+    });
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        const copyInfo = { ...userinfo };
+        copyInfo[name] = value;
+        setuserinfo(copyInfo);
+    };
+
+    //handling submit and sending data to backend
+    const navigate = useNavigate();
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        const { email, password } = userinfo;
+
+        if (!email || !password) {
+            return handleError("Email and password is required");
+        } else if (password.length < 5) {
+            return handleError("Password should be greater than 4 characters");
+        }
+
+        try {
+            const url = "http://localhost:8080/auth/login";
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ email, password }),
+            });
+            const result = await response.json();
+            const { message, success, error, jwtToken, name } = result;
+            if (success) {
+                handleSuccess(message);
+                setTimeout(() => {
+                    navigate("/dashboard");
+                }, 1000);
+            } else if (error) {
+                handleError(error);
+            } else if (!success) {
+                handleError(message);
+            } else {
+                handleError("Internal Server Error");
+            }
+        } catch (error) {
+            console.log(error);
+            handleError(error);
+        }
     };
 
     return (
@@ -38,7 +95,7 @@ function Login() {
             }}
         >
             <div className="loginContainer">
-                <form>
+                <form onSubmit={handleSubmit}>
                     {/* Logo image */}
                     <img
                         src={require("../assets/logo-design-2.png")}
@@ -57,11 +114,13 @@ function Login() {
 
                     {/* E-Mail Input Box Logic */}
                     <TextField
-                        required
                         id="outlined-basic"
                         label="E-mail"
                         variant="outlined"
                         style={{ marginBottom: "20px", width: "90%" }}
+                        name="email"
+                        onChange={handleChange}
+                        value={userinfo.email}
                     />
 
                     {/* Password Input Box Handler */}
@@ -75,6 +134,9 @@ function Login() {
                         <OutlinedInput
                             id="outlined-adornment-password"
                             type={showPassword ? "text" : "password"}
+                            name="password"
+                            onChange={handleChange}
+                            value={userinfo.password}
                             endAdornment={
                                 <InputAdornment position="end">
                                     <IconButton
@@ -109,22 +171,21 @@ function Login() {
                         </NavLink>
                     </span>
 
-                    <NavLink>
-                        <Button
-                            variant="contained"
-                            sx={{
-                                backgroundColor: "rgb(107, 70, 224)", // primary color
-                                color: "rgb(255, 255, 255)", // white text for contrast
-                                "&:hover": {
-                                    backgroundColor: "rgb(85, 55, 180)", // slightly darker shade for hover effect
-                                },
-                                width: "90%",
-                                mt: "20px",
-                            }}
-                        >
-                            Login
-                        </Button>
-                    </NavLink>
+                    <Button
+                        variant="contained"
+                        type="submit"
+                        sx={{
+                            backgroundColor: "rgb(107, 70, 224)", // primary color
+                            color: "rgb(255, 255, 255)", // white text for contrast
+                            "&:hover": {
+                                backgroundColor: "rgb(85, 55, 180)", // slightly darker shade for hover effect
+                            },
+                            width: "90%",
+                            mt: "20px",
+                        }}
+                    >
+                        Login
+                    </Button>
 
                     <div className="create-account-section">
                         <span>New on our platform?</span>
@@ -176,6 +237,7 @@ function Login() {
                     </div>
                 </form>
             </div>
+            <ToastContainer />
         </div>
     );
 }

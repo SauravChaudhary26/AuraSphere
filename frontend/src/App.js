@@ -5,6 +5,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Signup from "./views/Signup";
 import ForgotPassword from "./views/ForgotPassword";
 import Home from "./views/Home";
+import { Dashboard } from "./views/Dashboard";
 
 const theme = createTheme({
     palette: {
@@ -37,6 +38,10 @@ const App = () => {
         {
             path: "/forgot-password",
             element: <ForgotPassword />,
+        },
+        {
+            path: "/dashboard",
+            element: <Dashboard />,
         },
     ]);
 
