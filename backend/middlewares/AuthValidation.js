@@ -23,7 +23,23 @@ const loginValidation = (req, res, next) => {
     }
     next();
 };
+
+// New validation for updating user profile
+const updateProfileValidation = (req, res, next) => {
+    const schema = Joi.object({
+        name: Joi.string().min(3).max(100), // Optional field
+        email: Joi.string().email(),        // Optional field
+        password: Joi.string().min(4).max(100), // Optional field
+    }).or("name", "email", "password"); // At least one field should be provided
+
+    const { error } = schema.validate(req.body);
+    if (error) {
+        return res.status(400).json({ message: "Bad request", error });
+    }
+    next();
+};
 module.exports = {
     signupValidation,
     loginValidation,
+    updateProfileValidation,
 };
