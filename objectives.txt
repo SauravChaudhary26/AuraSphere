@@ -1,0 +1,17 @@
+Some of the objectives of the sites:-
+
+1.) User Profile section
+2.) Set Academic Goals
+3.) Attendance tracker using course schedules and weekly and monthly attendance tracker.
+4.) assignment and project submission deadlines
+5.) dividing course material into individual chapters and unlocking achievements after completing them.
+6.)Aura Points reward store and achievement section.
+7.)Daily and weekly challenges to gain extra aura points
+8.)Weekly or daily leaderboard across the campus.
+9.)Color coded timetables.
+10.)Team based challenges.
+11.)Virtual study rooms with pomodoro timer
+12.)Email based timer notification about goal deadline.
+13.)Event and Exam Countdown
+14.)Friend Challenge mode
+15.)Login/Signup from Google, Facebook, Github

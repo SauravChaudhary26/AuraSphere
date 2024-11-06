@@ -64,7 +64,6 @@ const login = async (req, res) => {
         });
     }
 };
-// const User = require("../models/User");
 
 // Function to update user profile
 const updateUserProfile = async (req, res) => {
@@ -81,7 +80,8 @@ const updateUserProfile = async (req, res) => {
         // Update user fields if provided
         if (name) user.name = name;
         if (email) user.email = email;
-        if (password && !(await bcrypt.compare(password, user.password))) { // Only hash if the password is different
+        if (password && !(await bcrypt.compare(password, user.password))) {
+            // Only hash if the password is different
             user.password = await bcrypt.hash(password, 10);
         }
 
@@ -101,7 +101,6 @@ const updateUserProfile = async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 };
-
 
 module.exports = {
     signup,
