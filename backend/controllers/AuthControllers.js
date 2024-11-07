@@ -74,7 +74,7 @@ const updateUserProfile = async (req, res) => {
         const { name, email, password } = req.body;
 
         // Find the user by ID
-        const user = await UserModel.findById(email);
+        const user = await UserModel.findById(userId);
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
