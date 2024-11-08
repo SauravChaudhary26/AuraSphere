@@ -7,11 +7,12 @@ import Profile from "./views/Profile";
 import Events from "./views/Events";
 import Points from "./views/Points";
 import Attendance from "./views/Attendance";
-import ButtonAppBar from "./components/taskbar/Navbar";
+import Navbar from "./components/taskbar/Navbar";
 
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
 import Dashboard from "./views/Dashboard";
+import Error from "./views/Error";
 
 const theme = createTheme({
     palette: {
@@ -24,7 +25,7 @@ const theme = createTheme({
 // Default layout with navbar
 const DefaultLayout = () => (
     <>
-        <ButtonAppBar />
+        <Navbar />
         <Outlet />
     </>
 );
@@ -80,6 +81,10 @@ const App = () => {
                 // Add more pages here as needed
             ],
         },
+        {
+            path: "*",
+            element: <Error/>
+        }
     ]);
 
     return <RouterProvider router={router} />;

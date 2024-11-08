@@ -1,62 +1,98 @@
 import * as React from "react";
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
-import Button from "@mui/material/Button";
 import List from "@mui/material/List";
 import Divider from "@mui/material/Divider";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import InboxIcon from "@mui/icons-material/MoveToInbox";
-import MailIcon from "@mui/icons-material/Mail";
+import SpaceDashboardRoundedIcon from '@mui/icons-material/SpaceDashboardRounded';
+import CoPresentRoundedIcon from '@mui/icons-material/CoPresentRounded';
+import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
+import LeaderboardRoundedIcon from '@mui/icons-material/LeaderboardRounded';
+import LocalLibraryIcon from '@mui/icons-material/LocalLibrary';
+import EventIcon from '@mui/icons-material/Event';
+import GroupRoundedIcon from '@mui/icons-material/GroupRounded';
 import { NavLink } from "react-router-dom";
+
+
+const iconMap = {
+        0: <SpaceDashboardRoundedIcon/>,
+        1: <CoPresentRoundedIcon />,
+        2: <AssignmentRoundedIcon />,
+        3: < LeaderboardRoundedIcon/>,
+        4: <LocalLibraryIcon />,
+        5: <EventIcon />,
+        6: <GroupRoundedIcon />,
+    };
+
+const linkMap = {
+        0: "/dashboard",
+        1: "/attendance",
+        2: "/assignments",
+        3: "/leaderboard",
+        4: "/studyroom",
+        5: "/events",
+        6: "/challengefriend",
+    };
+
+
+
+
 
 export default function TemporaryDrawer({ state, setState, toggleDrawer }) {
     const list = (anchor) => (
         <Box
             sx={{
-                width: anchor === "top" || anchor === "bottom" ? "auto" : 250,
+                width:  250,
             }}
             role="presentation"
             onClick={toggleDrawer(anchor, false)}
             onKeyDown={toggleDrawer(anchor, false)}
         >
             <List>
-                {["Dashboard", "Analytics", "Reports", "News"].map(
-                    (text, index) => (
-                        <NavLink
-                            to={`/${text.toLowerCase()}`}
-                            style={{ textDecoration: "none", color: "black" }}
-                        >
-                            <ListItem key={text} disablePadding>
-                                <ListItemButton>
-                                    <ListItemIcon>
-                                        {index % 2 === 0 ? (
-                                            <InboxIcon />
-                                        ) : (
-                                            <MailIcon />
-                                        )}
-                                    </ListItemIcon>
-                                    <ListItemText primary={text} />
-                                </ListItemButton>
-                            </ListItem>
-                        </NavLink>
-                    )
-                )}
+                {[
+                    "Dashboard",
+                    "Attendance",
+                    "Assignments",
+                    "Leaderboard",
+                    "Study Room",
+                    "Events",
+                    "Challenge a friend",
+                ].map((text, index) => (
+                    <NavLink
+                        to={linkMap[index]}
+                        style={{ textDecoration: "none", color: "black" }}
+                        key={text}
+                    >
+                        <ListItem disablePadding>
+                            <ListItemButton>
+                                <ListItemIcon>{iconMap[index]}</ListItemIcon>
+                                <ListItemText primary={text} />
+                            </ListItemButton>
+                        </ListItem>
+                    </NavLink>
+                ))}
             </List>
             <Divider />
             <List>
-                {["All mail", "Trash", "Spam"].map((text, index) => (
-                    <ListItem key={text} disablePadding>
-                        <ListItemButton>
-                            <ListItemIcon>
-                                {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-                            </ListItemIcon>
-                            <ListItemText primary={text} />
-                        </ListItemButton>
-                    </ListItem>
-                ))}
+                {["Report an issue", "Contact us", "Know More"].map(
+                    (text, index) => (
+                        <ListItem key={text} disablePadding>
+                            <ListItemButton>
+                                <ListItemIcon>
+                                    {index % 2 === 0 ? (
+                                        <EventIcon />
+                                    ) : (
+                                        <EventIcon />
+                                    )}
+                                </ListItemIcon>
+                                <ListItemText primary={text} />
+                            </ListItemButton>
+                        </ListItem>
+                    )
+                )}
             </List>
         </Box>
     );

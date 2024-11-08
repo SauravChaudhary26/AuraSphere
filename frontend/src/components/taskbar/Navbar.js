@@ -8,7 +8,7 @@ import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
 import TemporaryDrawer from "./Sidebar";
 
-export default function ButtonAppBar() {
+export default function Navbar() {
     const [state, setState] = React.useState({
         top: false,
         left: false,
