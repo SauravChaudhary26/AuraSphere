@@ -5,6 +5,7 @@ const dotenv = require("dotenv");
 
 // Import routers
 const AuthRouter = require("./routes/authRouter");
+const GoalRouter = require("./routes/goalRouter"); // Import the goals router
 
 // Load environment variables
 dotenv.config();
@@ -14,7 +15,7 @@ require("./db");
 
 // Initialize the Express application
 const app = express();
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 5000; // Default to 5000 if PORT is not set
 
 // Middleware setup
 app.use(cors());
@@ -27,6 +28,7 @@ app.get("/test", (req, res) => {
 
 // Define routes
 app.use("/auth", AuthRouter);
+app.use("/goals", GoalRouter); // Add the goals route
 
 // Start the server
 app.listen(PORT, () => {
