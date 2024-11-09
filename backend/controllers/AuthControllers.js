@@ -32,13 +32,15 @@ const login = async (req, res) => {
         const { email, password } = req.body;
         const user = await UserModel.findOne({ email });
         console.log(user);
+        
         if (!user) {
             return res
                 .status(403)
                 .json({ message: "Invalid Email or Password", success: false });
         }
+
         const isPassEqual = await bcrypt.compare(password, user.password);
-        if (isPassEqual) console.log("correct password");
+
         if (!isPassEqual) {
             return res
                 .status(403)
@@ -50,8 +52,6 @@ const login = async (req, res) => {
             process.env.JWT_SECRET,
             { expiresIn: "24h" }
         );
-
-        console.log(jwtToken);
 
         res.status(200).json({
             message: "Logged in Successfully",

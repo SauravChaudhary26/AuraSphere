@@ -3,6 +3,11 @@
     padding: 0;
 }
 
+a {
+    text-decoration: none;
+    color: black;
+}
+
 /* Hide the built-in show password icon in WebKit browsers (e.g., Chrome, Safari) */
 input[type="password"]::-ms-reveal,
 input[type="password"]::-ms-clear,

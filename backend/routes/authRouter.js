@@ -13,7 +13,12 @@ const router = require("express").Router();
 
 router.post("/login", loginValidation, login);
 router.post("/signup", signupValidation, signup);
-router.put("/profile", JwtValidation, updateUserProfile);
+router.put(
+    "/profile",
+    JwtValidation,
+    updateProfileValidation,
+    updateUserProfile
+);
 // const authMiddleware = require("../middleware/Auth");
 
 module.exports = router;
