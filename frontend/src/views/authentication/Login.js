@@ -65,8 +65,13 @@ function Login() {
             });
             const result = await response.json();
             const { message, success, error, jwtToken, name } = result;
+            console.log(jwtToken);
             if (success) {
                 handleSuccess(message);
+                console.log(jwtToken);
+
+                localStorage.setItem("token", jwtToken);
+                localStorage.setItem("loggedInUser", name);
                 setTimeout(() => {
                     navigate("/dashboard");
                 }, 1000);

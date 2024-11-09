@@ -3,46 +3,10 @@ using namespace std;
 
 int main()
 {
+    double a = 0.10000000000000000;
+    double b = 0.20000000000000000;
 
-    int n , k;
-    cin >> n;
-    cin >> k;
+    cout << a + b;
 
-    vector<int> arr;
-
-    for (int i = 0; i < n; i++)
-    {
-        int temp;
-        cin >> temp;
-        arr.push_back(temp);
-    }
-    if(k == n){
-        cout << 0;
-        return 0;
-    }
-
-    int count = 0, i = 0;
-
-    while(k < n){
-        bool sign = false;
-        for (int j = i + 1; j <= k; j++)
-        {
-            if(arr[j-1] > 2 * arr[j]){
-                sign = true;
-                break;
-            } 
-        }
-
-        if(!sign){
-            count++;
-        }
-        i++;
-        k++;
-        
-    }
-    
-
-    cout << count << endl;
-    
  return 0;
 }
