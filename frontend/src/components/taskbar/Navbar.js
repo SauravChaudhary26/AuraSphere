@@ -14,12 +14,11 @@ import { useNavigate, NavLink } from "react-router-dom";
 
 export default function Navbar() {
     const navigate = useNavigate();
-    const settings = ["Profile", "Dashboard", "Logout"];
     const [anchorElUser, setAnchorElUser] = useState(null);
     const handleOpenUserMenu = (event) => {
         setAnchorElUser(event.currentTarget);
     };
-    const handleCloseUserMenu = (e) => {
+    const handleCloseUserMenu = () => {
         setAnchorElUser(null);
     };
 
@@ -63,7 +62,7 @@ export default function Navbar() {
                         component="div"
                         sx={{ flexGrow: 1 }}
                     >
-                        News
+                        AuraSphere
                     </Typography>
 
                     {/* Open profile icon logic starts here */}
@@ -87,7 +86,7 @@ export default function Navbar() {
                             </IconButton>
                         </Tooltip>
                         <Menu
-                            sx={{ mt: "45px", minWidth: "3000px" }}
+                            sx={{ mt: "45px", minWidth: "30px" }}
                             id="menu-appbar"
                             anchorEl={anchorElUser}
                             anchorOrigin={{

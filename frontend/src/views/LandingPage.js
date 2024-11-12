@@ -2,12 +2,12 @@ import React from "react";
 import { Link } from "react-router-dom";
 import Button from "@mui/material/Button";
 
-import "./css/Taskbar.css";
+import "./css/LandingPage.css";
 
-function Taskbar() {
+function LandingPage() {
     return (
         <>
-            <div className="taskbar">
+            <div className="LandingPage">
                 <div className="img-container">
                     <img src="/logo-main.png" alt="aiennn"></img>
                 </div>
@@ -28,4 +28,4 @@ function Taskbar() {
     );
 }
 
-export default Taskbar;
+export default LandingPage;

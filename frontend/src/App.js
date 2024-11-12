@@ -2,25 +2,15 @@ import "./App.css";
 import Login from "./views/authentication/Login";
 import Signup from "./views/authentication/Signup";
 import ForgotPassword from "./views/ForgotPassword";
-import Home from "./views/Home";
+import LandingPage from "./views/LandingPage";
 import Profile from "./views/Profile";
 import Events from "./views/Events";
 import Points from "./views/Points";
 import Attendance from "./views/Attendance";
 import Navbar from "./components/taskbar/Navbar";
-
-import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
 import Dashboard from "./views/Dashboard";
 import Error from "./views/Error";
-
-const theme = createTheme({
-    palette: {
-        primary: {
-            main: "#9c27b0",
-        },
-    },
-});
 
 // Default layout with navbar
 const DefaultLayout = () => (
@@ -30,22 +20,15 @@ const DefaultLayout = () => (
     </>
 );
 
-// Layout without navbar
-const NoNavbarLayout = () => <Outlet />;
-
 const App = () => {
     const router = createBrowserRouter([
         {
             path: "/",
-            element: <Home />,
+            element: <LandingPage />,
         },
         {
             path: "/login",
-            element: (
-                <ThemeProvider theme={theme}>
-                    <Login />
-                </ThemeProvider>
-            ),
+            element: <Login />,
         },
         {
             path: "/signup",
@@ -83,8 +66,8 @@ const App = () => {
         },
         {
             path: "*",
-            element: <Error/>
-        }
+            element: <Error />,
+        },
     ]);
 
     return <RouterProvider router={router} />;

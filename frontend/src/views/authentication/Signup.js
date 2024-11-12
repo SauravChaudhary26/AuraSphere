@@ -17,19 +17,15 @@ import GoogleIcon from "../../assets/google-icon";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { handleError, handleSuccess } from "../../utils/ToastMessages";
+import axios from "axios"; // Import axios
 
 function Signup() {
     const [showPassword, setShowPassword] = useState(false);
-
     const handleClickShowPassword = () => setShowPassword((show) => !show);
-    const handleMouseDownPassword = (event) => {
-        event.preventDefault();
-    };
-    const handleMouseUpPassword = (event) => {
-        event.preventDefault();
-    };
+    const handleMouseDownPassword = (event) => event.preventDefault();
+    const handleMouseUpPassword = (event) => event.preventDefault();
 
-    //handling input fields
+    // Input state for user information
     const [userinfo, setuserinfo] = useState({
         name: "",
         email: "",
@@ -39,52 +35,40 @@ function Signup() {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        console.log(name, value);
-        const copyInfo = { ...userinfo };
-        copyInfo[name] = value;
-        setuserinfo(copyInfo);
+        setuserinfo((prev) => ({ ...prev, [name]: value }));
     };
 
-    //signup api logic
+    // Navigate hook for redirection
     const navigate = useNavigate();
-    const handleSubmit = async (e) => {
-        console.log("submit was pressed");
 
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const { name, email, password, repeatPassword } = userinfo;
 
         if (!name || !email || !password) {
             return handleError("All fields are required");
-        } else if (password.length < 5)
-            return handleError("Password must be of minimum 5 characters");
-        else if (password !== repeatPassword)
-            return handleError("Password fields don't match");
+        } else if (password.length < 5) {
+            return handleError("Password must be at least 5 characters");
+        } else if (password !== repeatPassword) {
+            return handleError("Passwords don't match");
+        }
+
         try {
             const url = "http://localhost:8080/auth/signup";
-            const response = await fetch(url, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ name, email, password }),
-            });
+            const response = await axios.post(url, { name, email, password });
 
-            const result = await response.json();
-            const { message, success, error } = result;
+            const { message, success, error } = response.data;
 
             if (success) {
                 handleSuccess(message);
-                setTimeout(() => {
-                    navigate("/dashboard");
-                }, 1000);
+                setTimeout(() => navigate("/dashboard"), 1000);
             } else if (error) {
-                const details = error?.details[0].message;
-                handleError(details);
-            } else if (!success) {
-                handleError(message);
+                handleError(error.details[0]?.message || "Signup failed");
+            } else {
+                handleError(message || "Signup failed");
             }
         } catch (error) {
-            handleError(error);
+            handleError(error.response?.data?.message || "Server error");
         }
     };
 
@@ -93,29 +77,25 @@ function Signup() {
             className="signup-page"
             style={{
                 backgroundImage: `url(${require("../../assets/bg-3.png")})`,
-                backgroundSize: "cover", // Adjusts the size of the image
-                backgroundPosition: "center", // Centers the image
+                backgroundSize: "cover",
+                backgroundPosition: "center",
                 width: "100vw",
                 height: "100vh",
             }}
         >
             <div className="signup-Container">
                 <form onSubmit={handleSubmit}>
-                    {/* Logo image */}
                     <img
                         src={require("../../assets/logo-design-2.png")}
                         alt="AuraSphere Logo"
                         style={{ width: "80px", marginBottom: "5px" }}
                     />
-
-                    {/* Initial Lines Begins */}
                     <div style={{ fontSize: "30px", marginBottom: "10px" }}>
                         Welcome To AuraSphere💫
                     </div>
                     <div style={{ marginBottom: "20px" }}>
                         Please Sign-in to your account and start gaining Aura!!!
                     </div>
-                    {/* Initial Lines Ends */}
                     <TextField
                         required
                         id="name"
@@ -125,8 +105,6 @@ function Signup() {
                         onChange={handleChange}
                         style={{ marginBottom: "20px", width: "90%" }}
                     />
-
-                    {/* E-Mail Input Box Logic */}
                     <TextField
                         required
                         id="email"
@@ -136,8 +114,6 @@ function Signup() {
                         onChange={handleChange}
                         style={{ marginBottom: "20px", width: "90%" }}
                     />
-
-                    {/* Password Input Box Handler */}
                     <FormControl
                         sx={{ width: "90%", mb: "20px" }}
                         variant="outlined"
@@ -153,11 +129,7 @@ function Signup() {
                             endAdornment={
                                 <InputAdornment position="end">
                                     <IconButton
-                                        aria-label={
-                                            showPassword
-                                                ? "hide the password"
-                                                : "display the password"
-                                        }
+                                        aria-label="toggle password visibility"
                                         onClick={handleClickShowPassword}
                                         onMouseDown={handleMouseDownPassword}
                                         onMouseUp={handleMouseUpPassword}
@@ -183,16 +155,13 @@ function Signup() {
                         onChange={handleChange}
                         style={{ marginBottom: "10px", width: "90%" }}
                     />
-
                     <Button
                         variant="contained"
                         type="submit"
                         sx={{
-                            backgroundColor: "purple", // purple background
-                            color: "white", // white text color
-                            "&:hover": {
-                                backgroundColor: "darkviolet", // darker purple on hover
-                            },
+                            backgroundColor: "purple",
+                            color: "white",
+                            "&:hover": { backgroundColor: "darkviolet" },
                             width: "90%",
                             mt: "20px",
                         }}
@@ -210,48 +179,41 @@ function Signup() {
                             </NavLink>
                         </span>
                     </div>
-                    {/* <Divider>or</Divider> */}
-                    <div style={{ textAlign: "center", marginTop: "20px" }}>
-                        {/* Divider with text "or" */}
-                        <Divider
-                            variant="middle"
-                            style={{ width: "100%", margin: "20px 0" }}
+                    <Divider
+                        variant="middle"
+                        style={{ width: "100%", margin: "20px 0" }}
+                    >
+                        <Typography variant="caption" color="textSecondary">
+                            or
+                        </Typography>
+                    </Divider>
+                    <Box display="flex" justifyContent="center" gap={2}>
+                        <IconButton
+                            href="https://facebook.com"
+                            style={{ color: "#3b5998" }}
                         >
-                            <Typography variant="caption" color="textSecondary">
-                                or
-                            </Typography>
-                        </Divider>
-
-                        {/* Social Media Icons */}
-                        <Box display="flex" justifyContent="center" gap={2}>
-                            <IconButton
-                                href="https://facebook.com"
-                                style={{ color: "#3b5998" }}
-                            >
-                                <Facebook fontSize="large" />
-                            </IconButton>
-                            <IconButton
-                                href="https://twitter.com"
-                                style={{ color: "#1DA1F2" }}
-                            >
-                                <Twitter fontSize="large" />
-                            </IconButton>
-                            <IconButton
-                                href="https://github.com"
-                                style={{ color: "#333" }}
-                            >
-                                <GitHub fontSize="large" />
-                            </IconButton>
-                            <IconButton href="https://google.com">
-                                <GoogleIcon width="32px" height="32px" />
-                            </IconButton>
-                        </Box>
-                    </div>
+                            <Facebook fontSize="large" />
+                        </IconButton>
+                        <IconButton
+                            href="https://twitter.com"
+                            style={{ color: "#1DA1F2" }}
+                        >
+                            <Twitter fontSize="large" />
+                        </IconButton>
+                        <IconButton
+                            href="https://github.com"
+                            style={{ color: "#333" }}
+                        >
+                            <GitHub fontSize="large" />
+                        </IconButton>
+                        <IconButton href="https://google.com">
+                            <GoogleIcon width="32px" height="32px" />
+                        </IconButton>
+                    </Box>
                 </form>
             </div>
-            <ToastContainer></ToastContainer>
+            <ToastContainer />
         </div>
     );
 }
-
 export default Signup;

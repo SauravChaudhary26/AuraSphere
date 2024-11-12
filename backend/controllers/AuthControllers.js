@@ -31,8 +31,7 @@ const login = async (req, res) => {
     try {
         const { email, password } = req.body;
         const user = await UserModel.findOne({ email });
-        console.log(user);
-        
+
         if (!user) {
             return res
                 .status(403)
@@ -50,7 +49,7 @@ const login = async (req, res) => {
         const jwtToken = jwt.sign(
             { email: user.email, _id: user._id },
             process.env.JWT_SECRET,
-            { expiresIn: "24h" }
+            { expiresIn: "240h" }
         );
 
         res.status(200).json({
