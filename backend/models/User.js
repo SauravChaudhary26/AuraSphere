@@ -1,3 +1,4 @@
+const { defaults } = require("joi");
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
@@ -15,6 +16,17 @@ const UserSchema = new Schema({
         type: String,
         required: true,
     },
+    joined:{
+        type: Date,
+        required: true,
+    },
+    aura:{
+        type: Number,
+        default: 0
+    }
+},
+{
+    versionKey: false, // Disables the __v field
 });
 
 const UserModel = mongoose.model("userdata", UserSchema);

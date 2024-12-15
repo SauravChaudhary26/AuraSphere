@@ -1,5 +1,6 @@
 const UserModel = require("../models/User");
 
+
 // Function to update user profile
 const updateUserProfile = async (req, res) => {
     try {
