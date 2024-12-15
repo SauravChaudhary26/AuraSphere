@@ -11,66 +11,72 @@ import Navbar from "./components/taskbar/Navbar";
 import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
 import Dashboard from "./views/Dashboard";
 import Error from "./views/Error";
+import Tester from "./views/Tester";
+import { DarkMode, JoinFullSharp } from "@mui/icons-material";
 
 // Default layout with navbar
 const DefaultLayout = () => (
-    <>
-        <Navbar />
-        <Outlet />
-    </>
+  <>
+    <Navbar />
+    <Outlet />
+  </>
 );
 
 const App = () => {
-    const router = createBrowserRouter([
+  const router = createBrowserRouter([
+    {
+      path: "/",
+      element: <LandingPage />,
+    },
+    {
+      path: "/login",
+      element: <Login />,
+    },
+    {
+      path: "/signup",
+      element: <Signup />,
+    },
+    {
+      element: <DefaultLayout />, // Navbar applied to all other pages
+      children: [
         {
-            path: "/",
-            element: <LandingPage />,
+          path: "/forgot-password",
+          element: <ForgotPassword />,
         },
         {
-            path: "/login",
-            element: <Login />,
+          path: "/profile",
+          element: <Profile />,
         },
         {
-            path: "/signup",
-            element: <Signup />,
+          path: "/events",
+          element: <Events />,
         },
         {
-            element: <DefaultLayout />, // Navbar applied to all other pages
-            children: [
-                {
-                    path: "/forgot-password",
-                    element: <ForgotPassword />,
-                },
-                {
-                    path: "/profile",
-                    element: <Profile />,
-                },
-                {
-                    path: "/events",
-                    element: <Events />,
-                },
-                {
-                    path: "/points",
-                    element: <Points />,
-                },
-                {
-                    path: "/attendance",
-                    element: <Attendance />,
-                },
-                {
-                    path: "/dashboard",
-                    element: <Dashboard />,
-                },
-                // Add more pages here as needed
-            ],
+          path: "/points",
+          element: <Points />,
         },
         {
-            path: "*",
-            element: <Error />,
+          path: "/attendance",
+          element: <Attendance />,
         },
-    ]);
+        {
+          path: "/dashboard",
+          element: <Dashboard />,
+        },
+        // Add more pages here as needed
+      ],
+    },
+    {
+      path: "/test",
+      element: <Tester />,
+    },
+    {
+      path: "*",
+      element: <Error />,
+    },
+  ]);
 
-    return <RouterProvider router={router} />;
+  return <RouterProvider router={router} />;
 };
 
 export default App;
