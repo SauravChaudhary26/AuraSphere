@@ -1,0 +1,38 @@
+/* Leaderboard.css */
+
+.leaderboard-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1.5rem; /* Equivalent to mt-6 in Tailwind */
+}
+
+.table-container {
+  width: 60%; /* Ensure the table container has a fixed width of 60% */
+  margin: 0 auto; /* Ensure it's centered properly */
+}
+
+.table-head-row {
+  background-color: #f0f0f0; /* bg-gray-200 */
+}
+
+.table-header {
+  font-weight: bold;
+  font-size: 1.125rem; /* text-lg */
+}
+
+.table-row:nth-child(odd) {
+  background-color: white; /* odd:bg-white */
+}
+
+.table-row:nth-child(even) {
+  background-color: #f9fafb; /* even:bg-gray-50 */
+}
+
+.table-row:hover {
+  background-color: #f3f4f6; /* hover:bg-gray-100 */
+}
+
+.table-cell {
+  font-size: 1rem; /* text-base */
+}

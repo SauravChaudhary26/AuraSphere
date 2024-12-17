@@ -9,7 +9,7 @@ const Tester = () => {
 
   useEffect(() => {
     setTemp(temp + 1)
-  }, [count])
+  }, [count, temp])
 
   useEffect(() => {
     alert("Page was rendered")

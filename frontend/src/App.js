@@ -8,11 +8,11 @@ import Events from "./views/Events";
 import Points from "./views/Points";
 import Attendance from "./views/Attendance";
 import Navbar from "./components/taskbar/Navbar";
+import Leaderboard from "./views/Leaderboard"
 import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
 import Dashboard from "./views/Dashboard";
 import Error from "./views/Error";
 import Tester from "./views/Tester";
-import { DarkMode, JoinFullSharp } from "@mui/icons-material";
 
 // Default layout with navbar
 const DefaultLayout = () => (
@@ -63,6 +63,10 @@ const App = () => {
           path: "/dashboard",
           element: <Dashboard />,
         },
+        {
+          path: "/leaderboard",
+          element: <Leaderboard/>,
+        }
         // Add more pages here as needed
       ],
     },
