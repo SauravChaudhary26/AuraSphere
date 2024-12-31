@@ -6,14 +6,14 @@ const goalSchema = new mongoose.Schema({
     ref: 'User',
     required: true,
   },
-  description: {
-    type: String,
-    required: true,
-  },
-  targetDate: {
-    type: Date,
-    required: true,
-  },
+  // description: {
+  //   type: String,
+  //   required: true,
+  // },
+  // targetDate: {
+  //   type: Date,
+  //   required: true,
+  // },
   completed: {
     type: Boolean,
     default: false,
