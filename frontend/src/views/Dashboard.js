@@ -1,70 +1,90 @@
 import "./css/Dashboard.css";
 import ObjectiveCard from "../components/Objectives/ObjectiveCard";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import AddObjective from "../components/Objectives/AddObjective";
 import axios from "axios";
 import { handleError } from "../utils/ToastMessages";
+import TypeWritter from "../components/TypeWritter";
 
 const Dashboard = () => {
-    const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token");
 
-    //Opening and closing of Add note Modal
-    const [openModal, setOpenModal] = useState(false);
-    const handleCloseModal = () => {
-        return setOpenModal(false);
-    };
+  // Opening and closing of Add Objective modal
+  const [openModal, setOpenModal] = useState(false);
+  const handleCloseModal = () => setOpenModal(false);
 
-    //retreiving all goals of a user
-    // const getAllGoals = async () => {
-    //     const url = "http://localhost:8080/goals";
+  const [allGoals, setAllGoals] = useState([]);
 
-    //     try {
-    //         const response = await axios.get(url, {
-    //             headers: {
-    //                 Authorization: `Bearer ${token}`,
-    //             },
-    //         });
+  // Retrieving all goals of a user
+  const getAllGoals = useCallback(async () => {
+    const url = "http://localhost:8080/goals";
 
-    //         const allGoals = await response.data;
-    //     } catch (error) {
-    //         handleError(error);
-    //     }
-    // };
+    try {
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-    //Function for deleting a notecard
-    const handleDelete = async () => {
-        // const url = "http://localhost:8080/goals";
+      const allGoals = response.data;
+      setAllGoals(allGoals);
+      console.log(allGoals);
+    } catch (error) {
+      handleError(error);
+    }
+  }, [token]);
 
-        // try {
-        //     const response = await axios.delete(url, {
-        //         headers: {
-        //             Authorization: `Bearer ${token}`,
-        //         },
-        //     });
-        // } catch (error) {
-        //     handleError(error);
-        // }
-    };
+  useEffect(() => {
+    console.log("useEffect was called");
+    getAllGoals();
+  }, [getAllGoals]);
 
-    return (
-        <>
-            <div className="card-container">
-                {[...Array(6)].map((_, index) => (
-                    <ObjectiveCard key={index} handleDelete={handleDelete} />
-                ))}
-            </div>
-            <button
-                className="floating-button"
-                onClick={() => {
-                    setOpenModal(true);
-                }}
-            >
-                +
-            </button>
+  // Deleting a goal
+  const handleDelete = async (goalId) => {
+    const url = `http://localhost:8080/goals/${goalId}`;
 
-            {openModal && <AddObjective handleCloseModal={handleCloseModal} />}
-        </>
-    );
+    try {
+      await axios.delete(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      // getAllGoals();
+      setAllGoals((prevGoals) =>
+        prevGoals.filter((goal) => goal._id !== goalId)
+      );
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  return (
+    <>
+      <div className="card-container">
+        {allGoals.length > 0 ? (
+          allGoals.map((goal, index) => (
+            <ObjectiveCard
+              key={index}
+              handleDelete={handleDelete}
+              _id={goal._id}
+              title={goal.title}
+              targetDate={goal.targetDate}
+              description={goal.description}
+            />
+          ))
+        ) : (
+          <TypeWritter />
+        )}
+      </div>
+
+      <button className="floating-button" onClick={() => setOpenModal(true)}>
+        +
+      </button>
+
+      {openModal && <AddObjective handleCloseModal={handleCloseModal} />}
+    </>
+  );
 };
 
 export default Dashboard;

@@ -1,11 +1,12 @@
 const Goal = require("../models/Goal");
 
 const addGoal = async (req, res) => {
-  const { description, targetDate } = req.body;
+  const { title, description, targetDate } = req.body;
 
   try {
     const goal = new Goal({
       userId: req.userId, // Retrieved from the auth middleware
+      title,
       description,
       targetDate,
     });

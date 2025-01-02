@@ -6,6 +6,10 @@ const goalSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
+  title: {
+    type: String,
+    required: true,
+  },
   description: {
     type: String,
     required: true,

@@ -10,101 +10,143 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { AwesomeButton } from "react-awesome-button";
 import "react-awesome-button/dist/styles.css";
 
+function formatDate(inputDate) {
+  const date = new Date(inputDate);
+
+  // Extract day, month, and year
+  const day = date.getUTCDate();
+  const month = date.toLocaleString("default", { month: "long" });
+  const year = date.getUTCFullYear();
+
+  // Determine the day suffix
+  const daySuffix = (day) => {
+    if (day >= 11 && day <= 13) return "th";
+    switch (day % 10) {
+      case 1:
+        return "st";
+      case 2:
+        return "nd";
+      case 3:
+        return "rd";
+      default:
+        return "th";
+    }
+  };
+
+  // Combine into the desired format
+  return `${day}${daySuffix(day)} ${month}, ${year}`;
+}
+
 const ObjectiveCard = ({
-    title,
-    duedate,
-    content,
-    isPinned,
-    handleDelete,
-    handleEdit,
-    handlePin,
+  handleDelete,
+  _id,
+  description,
+  title,
+  targetDate,
 }) => {
-    return (
-        <Card
-            variant="outlined"
-            sx={{
-                width: 300, // Fixed width
-                height: 220, // Fixed height
-                boxShadow: 2, // Subtle shadow
-                borderRadius: 2, // Rounded corners
-                position: "relative",
-                padding: 1,
-            }}
+  const handleComplete = () => {
+    console.log(_id);
+    console.log("completed");
+  };
+
+  const handleCardDelete = () => {
+    handleDelete(_id); // Call the handleDelete function passed from Dashboard
+  };
+
+  return (
+    <Card
+      variant="outlined"
+      sx={{
+        width: 300, // Fixed width
+        height: 220, // Fixed height
+        boxShadow: 2, // Subtle shadow
+        borderRadius: 2, // Rounded corners
+        position: "relative",
+        display: "flex",
+        flexDirection: "column", // Flex layout
+        padding: 1,
+      }}
+    >
+      {/* Pin Button */}
+      <IconButton
+        sx={{
+          position: "absolute",
+          top: 8,
+          right: 8,
+          color: "grey", // Default grey color
+          "&:hover": { color: "#2B85FF" }, // Blue on hover
+        }}
+        aria-label="pin"
+      >
+        <PushPinIcon />
+      </IconButton>
+
+      {/* Card Content */}
+      <CardContent
+        sx={{
+          flexGrow: 1, // Takes up remaining space
+          overflow: "hidden",
+        }}
+      >
+        <Typography variant="h6" component="div">
+          {title}
+        </Typography>
+        <Typography sx={{ fontSize: 12, color: "green" }}>
+          {formatDate(targetDate)}
+        </Typography>
+        <Typography
+          variant="body2"
+          sx={{
+            mt: 0.5,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            display: "-webkit-box",
+            WebkitBoxOrient: "vertical",
+            WebkitLineClamp: 5,
+          }}
         >
-            {/* Pin Button */}
-            <IconButton
-                sx={{
-                    position: "absolute",
-                    top: 8,
-                    right: 8,
-                    color: "grey", // Default grey color
-                    "&:hover": { color: "#2B85FF" }, // Blue on hover
-                }}
-                aria-label="pin"
-            >
-                <PushPinIcon />
-            </IconButton>
+          {description}
+        </Typography>
+      </CardContent>
 
-            {/* Card Content */}
-            <CardContent>
-                <Typography variant="h6" component="div">
-                    Card Title
-                </Typography>
-                <Typography sx={{ fontSize: 12, color: "green" }}>
-                    Due Date: Jan 25, 2024
-                </Typography>
-                <Typography
-                    variant="body2"
-                    sx={{
-                        mt: 0.5,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        display: "-webkit-box",
-                        WebkitBoxOrient: "vertical",
-                        WebkitLineClamp: 5,
-                    }}
-                >
-                    This is the content section where a brief description or
-                    note can be displayed. This is an example.
-                </Typography>
-            </CardContent>
-
-            {/* Bottom Actions */}
-            <CardActions
-                sx={{
-                    display: "flex",
-                    justifyContent: "flex-end",
-                    padding: "8px 16px",
-                }}
-            >
-                <AwesomeButton
-                    type="secondary"
-                    style={{
-                        minWidth: "120px",
-                        marginRight: "35px",
-                    }}
-                >
-                    Completed!!!
-                </AwesomeButton>
-                <IconButton
-                    sx={{
-                        color: "green",
-                    }}
-                    aria-label="edit"
-                >
-                    <EditIcon />
-                </IconButton>
-                <IconButton
-                    sx={{
-                        color: "red",
-                    }}
-                    aria-label="delete"
-                >
-                    <DeleteIcon />
-                </IconButton>
-            </CardActions>
-        </Card>
-    );
+      {/* Bottom Actions */}
+      <CardActions
+        sx={{
+          display: "flex",
+          justifyContent: "flex-end",
+          padding: "8px 16px",
+        }}
+      >
+        <AwesomeButton
+          type="secondary"
+          style={{
+            minWidth: "120px",
+            marginRight: "35px",
+          }}
+          onPress={handleComplete}
+        >
+          Completed!!!
+        </AwesomeButton>
+        <IconButton
+          sx={{
+            color: "green",
+          }}
+          aria-label="edit"
+        >
+          <EditIcon />
+        </IconButton>
+        <IconButton
+          sx={{
+            color: "red",
+          }}
+          aria-label="delete"
+          onClick={handleCardDelete} // Trigger handleDelete when clicked
+        >
+          <DeleteIcon />
+        </IconButton>
+      </CardActions>
+    </Card>
+  );
 };
 
 export default ObjectiveCard;
