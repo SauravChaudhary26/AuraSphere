@@ -1,27 +1,76 @@
-.taskbar {
-    display: flex; /* Use flexbox for layout */
-    align-items: center; /* Vertically center items */
-    justify-content: space-between; /* Space out elements */
-    height: 70px;
-    border-color: black;
-    border-style: solid;
-    border-width: 5px;
-    padding: 0 20px; /* Add horizontal padding */
-    box-sizing: border-box; /* Include padding and border in element's total width and height */
-}
-
-.img-container {
-    height: 65px;
-    margin-right: 20px; /* Space between logo and buttons */
-}
-
-.img-container img {
-    height: 100%; /* Maintain height relative to the taskbar */
-    object-fit: contain; /* Scale the image to fit without distortion */
-}
-
-.button-container {
-    display: flex; /* Use flex to arrange buttons side by side */
-    align-items: center; /* Vertically center buttons */
-    gap: 10px;
-}
+.landing-page {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    color: #333;
+  }
+  
+  .landing-header {
+    background-color: #007bff;
+    color: white;
+    padding: 50px 20px;
+  }
+  
+  .landing-header h1 {
+    font-size: 3rem;
+  }
+  
+  .landing-header p {
+    font-size: 1.2rem;
+    margin-top: 10px;
+  }
+  
+  .cta-buttons {
+    margin-top: 20px;
+  }
+  
+  .cta-buttons .btn {
+    margin: 5px;
+    padding: 10px 20px;
+    font-size: 1rem;
+  }
+  
+  .landing-content {
+    padding: 50px 20px;
+  }
+  
+  .features h2 {
+    font-size: 2rem;
+    margin-bottom: 30px;
+  }
+  
+  .feature-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+  }
+  
+  .feature-item {
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    width: 300px;
+    text-align: left;
+  }
+  
+  .feature-item h3 {
+    font-size: 1.5rem;
+  }
+  
+  .feature-item p {
+    font-size: 1rem;
+    margin: 10px 0;
+  }
+  
+  .feature-item .btn {
+    margin-top: 10px;
+  }
+  
+  .landing-footer {
+    background-color: #333;
+    color: white;
+    padding: 20px 0;
+    margin-top: 50px;
+  }
+  
