@@ -1,85 +1,107 @@
 import ReactDOM from "react-dom";
+import { useState, useEffect } from "react";
 import { TextField, Button, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import dayjs from "dayjs";
 import { DemoContainer, DemoItem } from "@mui/x-date-pickers/internals/demo";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { MobileDatePicker } from "@mui/x-date-pickers/MobileDatePicker";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 
 import "./AddObjective.css";
-import { useEffect } from "react";
 
-const AddObjective = ({ handleCloseModal }) => {
-    useEffect(() => {
-        document.body.style.overflowY = "hidden";
+const AddObjective = ({ handleCloseModal, handleSubmit }) => {
+   useEffect(() => {
+      document.body.style.overflowY = "hidden";
 
-        return () => {
-            document.body.style.overflowY = "scroll";
-        };
-    }, []);
+      return () => {
+         document.body.style.overflowY = "scroll";
+      };
+   }, []);
 
-    return ReactDOM.createPortal(
-        <>
-            {/* Dark overlay for modal background */}
-            <div className="modal-wrapper" onClick={handleCloseModal}></div>
+   let [formVals, setFormVals] = useState({
+      title: "",
+      description: "",
+      targetDate: dayjs(), // Default to the current date
+   });
 
-            {/* Modal content */}
-            <div className="modal">
-                {/* Title input */}
-                <IconButton
-                    aria-label="close"
-                    onClick={handleCloseModal}
-                    className="close-button"
-                    id="close-button"
-                    size="small"
-                >
-                    <CloseIcon />
-                </IconButton>
-                <TextField
-                    id="title"
-                    label="Title"
-                    variant="standard"
-                    fullWidth
-                    margin="normal"
-                />
+   const handleSubmitCall = async () => {
+      handleSubmit(formVals);
+      handleCloseModal();
+   };
 
-                {/* Description input */}
-                <TextField
-                    id="description"
-                    label="Description"
-                    multiline
-                    rows={4}
-                    variant="standard"
-                    fullWidth
-                    margin="normal"
-                    sx={{ marginBottom: "30px" }}
-                />
+   return ReactDOM.createPortal(
+      <>
+         {/* Dark overlay for modal background */}
+         <div className="modal-wrapper" onClick={handleCloseModal}></div>
 
-                {/* Due date input */}
-
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                    <DemoContainer components={["MobileDatePicker"]}>
-                        <DemoItem label="Due Date">
-                            <MobileDatePicker defaultValue={dayjs()} />
-                        </DemoItem>
-                    </DemoContainer>
-                </LocalizationProvider>
-
-                {/* Submit button */}
-                <Button
-                    variant="contained"
-                    color="primary"
-                    fullWidth
-                    style={{ marginTop: "20px" }}
-                    onClick={handleCloseModal} // Close modal on button click
-                >
-                    Add Objective
-                </Button>
-            </div>
-        </>,
-        document.querySelector(".modals")
-    );
+         {/* Modal content */}
+         <div className="modal">
+            {/* Title input */}
+            <IconButton
+               aria-label="close"
+               onClick={handleCloseModal}
+               className="close-button"
+               id="close-button"
+               size="small"
+            >
+               <CloseIcon />
+            </IconButton>
+            <TextField
+               id="title"
+               label="Title"
+               variant="standard"
+               fullWidth
+               margin="normal"
+               onChange={(e) =>
+                  setFormVals({ ...formVals, title: e.target.value })
+               }
+            />
+            {/* Description input */}
+            <TextField
+               id="description"
+               label="Description"
+               multiline
+               rows={4}
+               variant="standard"
+               fullWidth
+               margin="normal"
+               sx={{ marginBottom: "30px" }}
+               onChange={(e) =>
+                  setFormVals({ ...formVals, description: e.target.value })
+               }
+            />
+            {/* Target date input */}
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+               <DemoContainer components={["DesktopDatePicker"]}>
+                  <DemoItem label="Target Date">
+                     <DatePicker
+                        value={formVals.targetDate} // Bind the value to state
+                        onChange={(newValue) => {
+                           setFormVals({
+                              ...formVals,
+                              targetDate: newValue, // Update state when the date changes
+                           });
+                        }}
+                        slotProps={{ textField: { variant: "outlined" } }}
+                     />
+                  </DemoItem>
+               </DemoContainer>
+            </LocalizationProvider>
+            {/* Submit button */}
+            <Button
+               variant="contained"
+               color="primary"
+               fullWidth
+               style={{ marginTop: "20px" }}
+               onClick={handleSubmitCall}
+            >
+               Add Objective
+            </Button>
+         </div>
+      </>,
+      document.querySelector(".modals")
+   );
 };
 
 export default AddObjective;
