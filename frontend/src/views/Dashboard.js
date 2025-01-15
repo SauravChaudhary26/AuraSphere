@@ -62,7 +62,6 @@ const Dashboard = () => {
    //Submiting a goal
    const handleSubmit = async (formVals) => {
       const url = "http://localhost:8080/goals";
-      const token = localStorage.getItem("token");
 
       try {
          const response = await axios.post(url, formVals, {
@@ -87,7 +86,6 @@ const Dashboard = () => {
    //Completing a goal
    const handleComplete = async (_id) => {
       const url = `http://localhost:8080/goals/${_id}`;
-      const token = localStorage.getItem("token");
 
       const data = {
          completed: true,
