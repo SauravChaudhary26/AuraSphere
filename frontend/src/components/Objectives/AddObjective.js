@@ -3,12 +3,18 @@ import { useState, useEffect } from "react";
 import { TextField, Button, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 import { DemoContainer, DemoItem } from "@mui/x-date-pickers/internals/demo";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 
 import "./AddObjective.css";
+
+// Extend dayjs with plugins
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const AddObjective = ({ handleCloseModal, handleSubmit }) => {
    useEffect(() => {
@@ -22,12 +28,18 @@ const AddObjective = ({ handleCloseModal, handleSubmit }) => {
    let [formVals, setFormVals] = useState({
       title: "",
       description: "",
-      targetDate: dayjs(), // Default to the current date
+      targetDate: dayjs().tz("Asia/Kolkata"), // Set default to current IST time
    });
 
    const handleSubmitCall = async () => {
-      handleSubmit(formVals);
+      // Convert the targetDate to IST before submission
+      const formWithISTDate = {
+         ...formVals,
+         targetDate: formVals.targetDate.tz("Asia/Kolkata").format(),
+      };
+      handleSubmit(formWithISTDate);
       handleCloseModal();
+      console.log(formVals.targetDate.tz("Asia/Kolkata").format());
    };
 
    return ReactDOM.createPortal(
@@ -76,12 +88,15 @@ const AddObjective = ({ handleCloseModal, handleSubmit }) => {
                <DemoContainer components={["DesktopDatePicker"]}>
                   <DemoItem label="Target Date">
                      <DatePicker
-                        value={formVals.targetDate} // Bind the value to state
+                        value={formVals.targetDate}
                         onChange={(newValue) => {
                            setFormVals({
                               ...formVals,
-                              targetDate: newValue, // Update state when the date changes
+                              targetDate: dayjs(newValue).tz("Asia/Kolkata"),
                            });
+                           console.log(
+                              dayjs(newValue).tz("Asia/Kolkata").toString()
+                           );
                         }}
                         slotProps={{ textField: { variant: "outlined" } }}
                      />

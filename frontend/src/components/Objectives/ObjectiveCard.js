@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useState } from "react";
 import Card from "@mui/material/Card";
 import CardActions from "@mui/material/CardActions";
 import CardContent from "@mui/material/CardContent";
@@ -9,12 +9,20 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { AwesomeButton } from "react-awesome-button";
 import "react-awesome-button/dist/styles.css";
+import EditObjectives from "./EditObjectives";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
+// Extend dayjs with plugins
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 function formatDate(inputDate) {
-   const date = new Date(inputDate);
+   const date = dayjs(inputDate).tz("Asia/Kolkata").toDate();
 
    // Extract day, month, and year
-   const day = date.getUTCDate();
+   const day = date.getDate();
    const month = date.toLocaleString("default", { month: "long" });
    const year = date.getUTCFullYear();
 
@@ -48,9 +56,17 @@ const ObjectiveCard = ({
    const handleCardComplete = async () => {
       handleComplete(_id);
    };
-
    const handleCardDelete = () => {
-      handleDelete(_id); // Call the handleDelete function passed from Dashboard
+      handleDelete(_id);
+   };
+
+   // Opening and closing of edit objective modal
+   const [openModal, setOpenModal] = useState(false);
+   const handleCloseModal = () => {
+      setOpenModal(false);
+   };
+   const handleOpenModal = () => {
+      setOpenModal(true);
    };
 
    return (
@@ -59,11 +75,11 @@ const ObjectiveCard = ({
          sx={{
             width: 300, // Fixed width
             height: 220, // Fixed height
-            boxShadow: 2, // Subtle shadow
-            borderRadius: 2, // Rounded corners
+            boxShadow: 2,
+            borderRadius: 2,
             position: "relative",
             display: "flex",
-            flexDirection: "column", // Flex layout
+            flexDirection: "column",
             padding: 1,
          }}
       >
@@ -73,8 +89,8 @@ const ObjectiveCard = ({
                position: "absolute",
                top: 8,
                right: 8,
-               color: "grey", // Default grey color
-               "&:hover": { color: "#2B85FF" }, // Blue on hover
+               color: "grey",
+               "&:hover": { color: "#2B85FF" },
             }}
             aria-label="pin"
          >
@@ -84,7 +100,7 @@ const ObjectiveCard = ({
          {/* Card Content */}
          <CardContent
             sx={{
-               flexGrow: 1, // Takes up remaining space
+               flexGrow: 1,
                overflow: "hidden",
             }}
          >
@@ -92,7 +108,7 @@ const ObjectiveCard = ({
                {title}
             </Typography>
             <Typography sx={{ fontSize: 12, color: "green" }}>
-               {formatDate(targetDate)}
+               {formatDate(targetDate)} {/* Format date with custom function */}
             </Typography>
             <Typography
                variant="body2"
@@ -132,15 +148,23 @@ const ObjectiveCard = ({
                   color: "green",
                }}
                aria-label="edit"
+               onClick={handleOpenModal}
             >
                <EditIcon />
             </IconButton>
+            <EditObjectives
+               openModal={openModal}
+               handleCloseModal={handleCloseModal}
+               prevTitle={title}
+               prevDescription={description}
+               prevTarget={targetDate}
+            />
             <IconButton
                sx={{
                   color: "red",
                }}
                aria-label="delete"
-               onClick={handleCardDelete} // Trigger handleDelete when clicked
+               onClick={handleCardDelete}
             >
                <DeleteIcon />
             </IconButton>

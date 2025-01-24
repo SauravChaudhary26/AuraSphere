@@ -7,9 +7,9 @@ const schedule = require("node-schedule");
 // Import routers
 const AuthRouter = require("./routes/authRouter");
 const GoalRouter = require("./routes/goalRouter"); // Import the goals router
-const MainRouter = require("./routes/mainRouter")
+const MainRouter = require("./routes/mainRouter");
 
-const {updateLeaderboard} = require("./controllers/Leaderboard")
+const { updateLeaderboard } = require("./controllers/Leaderboard");
 
 // Load environment variables
 dotenv.config();
@@ -32,11 +32,11 @@ app.use("/goals", GoalRouter); // Add the goals route
 
 // Start the server
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+   console.log(`Server is running on port ${PORT}`);
 });
 
 //Refresh the leaderboard
 schedule.scheduleJob("0 0 * * *", () => {
-    console.log("Scheduled leaderboard update triggered");
-    updateLeaderboard();
+   console.log("Scheduled leaderboard update triggered");
+   updateLeaderboard();
 });
