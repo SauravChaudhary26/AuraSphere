@@ -13,6 +13,7 @@ import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
 import Dashboard from "./views/Dashboard";
 import Error from "./views/Error";
 import Tester from "./views/Tester";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 // Default layout with navbar
 const DefaultLayout = () => (
@@ -20,6 +21,12 @@ const DefaultLayout = () => (
       <Navbar />
       <Outlet />
    </>
+);
+
+const GoogleWrapper = () => (
+   <GoogleOAuthProvider clientId="440611299930-ijj44k8fgi6o720hogpva50fl8acm2sv.apps.googleusercontent.com">
+      <Login />
+   </GoogleOAuthProvider>
 );
 
 const App = () => {
@@ -30,7 +37,7 @@ const App = () => {
       },
       {
          path: "/login",
-         element: <Login />,
+         element: <GoogleWrapper />,
       },
       {
          path: "/signup",
