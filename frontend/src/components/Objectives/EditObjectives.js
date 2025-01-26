@@ -11,6 +11,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
+import axios from "axios";
 
 const EditObjectives = ({
    openModal,
@@ -18,12 +19,50 @@ const EditObjectives = ({
    prevTitle,
    prevDescription,
    prevTarget,
+   _id,
+   getAllGoals,
 }) => {
    const [initialVal, setInitialVal] = useState({
       title: prevTitle,
       description: prevDescription,
       targetDate: prevTarget,
    });
+
+   const handleEdit = async () => {
+      const title = initialVal.title;
+      const targetDate = initialVal.targetDate;
+      const description = initialVal.description;
+
+      const url = `http://localhost:8080/goals/${_id}`;
+      const token = localStorage.getItem("token");
+
+      try {
+         await axios.put(
+            url,
+            {
+               title: title,
+               description: description,
+               targetDate: targetDate,
+            },
+            {
+               headers: {
+                  Authorization: `Bearer ${token}`,
+               },
+            }
+         );
+
+         // Update the goals state with the updated data
+         // setAllGoals((prevGoals) =>
+         //    prevGoals.map((goal) =>
+         //       goal._id === _id ? response.data.updatedGoal : goal
+         //    )
+         // );
+         getAllGoals();
+         handleCloseModal();
+      } catch (error) {
+         console.log("error while submitting edit form ", error);
+      }
+   };
 
    return (
       <>
@@ -32,16 +71,6 @@ const EditObjectives = ({
             onClose={handleCloseModal}
             PaperProps={{
                component: "form",
-               onSubmit: (event) => {
-                  event.preventDefault();
-                  const title = initialVal.title;
-                  const targetDate = initialVal.targetDate;
-                  const description = initialVal.description;
-                  console.log(title, description, targetDate);
-                  console.log(dayjs(targetDate));
-
-                  handleCloseModal();
-               },
             }}
          >
             <DialogTitle>Edit your objective</DialogTitle>
@@ -101,7 +130,7 @@ const EditObjectives = ({
             </DialogContent>
             <DialogActions>
                <Button onClick={handleCloseModal}>Cancel</Button>
-               <Button type="submit">Subscribe</Button>
+               <Button onClick={handleEdit}>Save</Button>
             </DialogActions>
          </Dialog>
       </>

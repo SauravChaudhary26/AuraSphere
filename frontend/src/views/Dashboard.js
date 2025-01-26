@@ -28,14 +28,12 @@ const Dashboard = () => {
 
          const allGoals = response.data;
          setAllGoals(allGoals);
-         console.log(allGoals);
       } catch (error) {
          handleError(error);
       }
    }, [token]);
 
    useEffect(() => {
-      console.log("useEffect was called");
       getAllGoals();
    }, [getAllGoals]);
 
@@ -112,6 +110,36 @@ const Dashboard = () => {
       }
    };
 
+   //Pinning and unpinning a goal
+   const handlePin = async (_id) => {
+      const url = "http://localhost:8080/goals/pin";
+
+      try {
+         const response = await axios.patch(
+            url,
+            {
+               goalId: _id,
+            },
+            {
+               headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+               },
+            }
+         );
+
+         console.log(response);
+         getAllGoals();
+         // setAllGoals((allGoals) =>
+         //    allGoals.map((goal) =>
+         //       goal._id === _id ? { ...goal, isPinned: !goal.isPinned } : goal
+         //    )
+         // );
+      } catch (error) {
+         console.log("error while updating goal ", error);
+      }
+   };
+
    return (
       <>
          <div className="card-container">
@@ -125,6 +153,9 @@ const Dashboard = () => {
                      title={goal.title}
                      targetDate={goal.targetDate}
                      description={goal.description}
+                     isPinned={goal.isPinned}
+                     getAllGoals={getAllGoals}
+                     handlePin={handlePin}
                   />
                ))
             ) : (

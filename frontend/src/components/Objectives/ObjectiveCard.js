@@ -52,6 +52,9 @@ const ObjectiveCard = ({
    description,
    title,
    targetDate,
+   getAllGoals,
+   handlePin,
+   isPinned,
 }) => {
    const handleCardComplete = async () => {
       handleComplete(_id);
@@ -67,6 +70,9 @@ const ObjectiveCard = ({
    };
    const handleOpenModal = () => {
       setOpenModal(true);
+   };
+   const handleCardPin = () => {
+      handlePin(_id);
    };
 
    return (
@@ -89,10 +95,11 @@ const ObjectiveCard = ({
                position: "absolute",
                top: 8,
                right: 8,
-               color: "grey",
+               color: isPinned ? "#2B85FF" : "grey",
                "&:hover": { color: "#2B85FF" },
             }}
             aria-label="pin"
+            onClick={handleCardPin}
          >
             <PushPinIcon />
          </IconButton>
@@ -158,6 +165,8 @@ const ObjectiveCard = ({
                prevTitle={title}
                prevDescription={description}
                prevTarget={targetDate}
+               _id={_id}
+               getAllGoals={getAllGoals}
             />
             <IconButton
                sx={{

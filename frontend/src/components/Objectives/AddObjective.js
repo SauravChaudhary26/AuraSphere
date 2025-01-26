@@ -39,7 +39,6 @@ const AddObjective = ({ handleCloseModal, handleSubmit }) => {
       };
       handleSubmit(formWithISTDate);
       handleCloseModal();
-      console.log(formVals.targetDate.tz("Asia/Kolkata").format());
    };
 
    return ReactDOM.createPortal(
@@ -94,9 +93,6 @@ const AddObjective = ({ handleCloseModal, handleSubmit }) => {
                               ...formVals,
                               targetDate: dayjs(newValue).tz("Asia/Kolkata"),
                            });
-                           console.log(
-                              dayjs(newValue).tz("Asia/Kolkata").toString()
-                           );
                         }}
                         slotProps={{ textField: { variant: "outlined" } }}
                      />
