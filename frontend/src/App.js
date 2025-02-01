@@ -1,19 +1,23 @@
+import React, { Suspense } from "react";
 import "./App.css";
-import Login from "./views/authentication/Login";
-import Signup from "./views/authentication/Signup";
-import ForgotPassword from "./views/ForgotPassword";
-import LandingPage from "./views/LandingPage";
-import Profile from "./views/Profile";
-import Events from "./views/Events";
-import Points from "./views/Points";
-import Attendance from "./views/Attendance";
-import Navbar from "./components/taskbar/Navbar";
-import Leaderboard from "./views/Leaderboard";
 import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
-import Dashboard from "./views/Dashboard";
-import Error from "./views/Error";
-import Tester from "./views/Tester";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import Loader from "./components/Loader"; // Import your custom loader
+import Navbar from "./components/taskbar/Navbar";
+
+// Lazy loading pages
+const Login = React.lazy(() => import("./views/authentication/Login"));
+const Signup = React.lazy(() => import("./views/authentication/Signup"));
+const ForgotPassword = React.lazy(() => import("./views/ForgotPassword"));
+const LandingPage = React.lazy(() => import("./views/LandingPage"));
+const Profile = React.lazy(() => import("./views/Profile"));
+const Events = React.lazy(() => import("./views/Events"));
+const Points = React.lazy(() => import("./views/Points"));
+const Attendance = React.lazy(() => import("./views/Attendance"));
+const Dashboard = React.lazy(() => import("./views/Dashboard"));
+const Leaderboard = React.lazy(() => import("./views/Leaderboard"));
+const Error = React.lazy(() => import("./views/Error"));
+const Tester = React.lazy(() => import("./views/Tester"));
 
 // Default layout with navbar
 const DefaultLayout = () => (
@@ -23,9 +27,12 @@ const DefaultLayout = () => (
    </>
 );
 
+// Google OAuth Wrapper
 const GoogleWrapper = () => (
    <GoogleOAuthProvider clientId="440611299930-ijj44k8fgi6o720hogpva50fl8acm2sv.apps.googleusercontent.com">
-      <Login />
+      <Suspense fallback={<Loader />}>
+         <Login />
+      </Suspense>
    </GoogleOAuthProvider>
 );
 
@@ -33,7 +40,11 @@ const App = () => {
    const router = createBrowserRouter([
       {
          path: "/",
-         element: <LandingPage />,
+         element: (
+            <Suspense fallback={<Loader />}>
+               <LandingPage />
+            </Suspense>
+         ),
       },
       {
          path: "/login",
@@ -41,49 +52,88 @@ const App = () => {
       },
       {
          path: "/signup",
-         element: <Signup />,
+         element: (
+            <Suspense fallback={<Loader />}>
+               <Signup />
+            </Suspense>
+         ),
       },
       {
          element: <DefaultLayout />, // Navbar applied to all other pages
          children: [
             {
                path: "/forgot-password",
-               element: <ForgotPassword />,
+               element: (
+                  <Suspense fallback={<Loader />}>
+                     <ForgotPassword />
+                  </Suspense>
+               ),
             },
             {
                path: "/profile",
-               element: <Profile />,
+               element: (
+                  <Suspense fallback={<Loader />}>
+                     <Profile />
+                  </Suspense>
+               ),
             },
             {
                path: "/events",
-               element: <Events />,
+               element: (
+                  <Suspense fallback={<Loader />}>
+                     <Events />
+                  </Suspense>
+               ),
             },
             {
                path: "/points",
-               element: <Points />,
+               element: (
+                  <Suspense fallback={<Loader />}>
+                     <Points />
+                  </Suspense>
+               ),
             },
             {
                path: "/attendance",
-               element: <Attendance />,
+               element: (
+                  <Suspense fallback={<Loader />}>
+                     <Attendance />
+                  </Suspense>
+               ),
             },
             {
                path: "/dashboard",
-               element: <Dashboard />,
+               element: (
+                  <Suspense fallback={<Loader />}>
+                     <Dashboard />
+                  </Suspense>
+               ),
             },
             {
                path: "/leaderboard",
-               element: <Leaderboard />,
+               element: (
+                  <Suspense fallback={<Loader />}>
+                     <Leaderboard />
+                  </Suspense>
+               ),
             },
-            // Add more pages here as needed
          ],
       },
       {
          path: "/test",
-         element: <Tester />,
+         element: (
+            <Suspense fallback={<Loader />}>
+               <Tester />
+            </Suspense>
+         ),
       },
       {
          path: "*",
-         element: <Error />,
+         element: (
+            <Suspense fallback={<Loader />}>
+               <Error />
+            </Suspense>
+         ),
       },
    ]);
 
