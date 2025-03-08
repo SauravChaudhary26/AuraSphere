@@ -1,6 +1,5 @@
 Some of the objectives of the sites:-
 
-1.) User Profile section
 3.) Attendance tracker using course schedules and weekly and monthly attendance tracker.
 4.) assignment and project submission deadlines
 5.) dividing course material into individual chapters and unlocking achievements after completing them.
@@ -15,3 +14,8 @@ Some of the objectives of the sites:-
 14.)Friend Challenge mode
 15.)Login/Signup from Google, Facebook, Github
 16.)Some more 
+
+
+
+//Notes//
+Use proxies brfore deployement

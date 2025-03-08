@@ -4,6 +4,8 @@ import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import Loader from "./components/Loader"; // Import your custom loader
 import Navbar from "./components/taskbar/Navbar";
+import StudyRoom from "./views/StudyRoom";
+import Demo from "./views/Demo.js";
 
 // Lazy loading pages
 const Login = React.lazy(() => import("./views/authentication/Login"));
@@ -18,6 +20,8 @@ const Dashboard = React.lazy(() => import("./views/Dashboard"));
 const Leaderboard = React.lazy(() => import("./views/Leaderboard"));
 const Error = React.lazy(() => import("./views/Error"));
 const Tester = React.lazy(() => import("./views/Tester"));
+const Courses = React.lazy(() => import("./views/Courses"));
+const Timetable = React.lazy(() => import("./views/Timetable"));
 
 // Default layout with navbar
 const DefaultLayout = () => (
@@ -116,6 +120,34 @@ const App = () => {
                      <Leaderboard />
                   </Suspense>
                ),
+            },
+            {
+               path: "/courses",
+               element: (
+                  <Suspense fallback={<Loader />}>
+                     <Courses />
+                  </Suspense>
+               ),
+            },
+            {
+               path: "/studyroom",
+               element: (
+                  <Suspense fallback={<Loader />}>
+                     <StudyRoom />
+                  </Suspense>
+               ),
+            },
+            {
+               path: "timetable",
+               element: (
+                  <Suspense fallback={<Loader />}>
+                     <Timetable />
+                  </Suspense>
+               ),
+            },
+            {
+               path: "demo_",
+               element: <Demo />,
             },
          ],
       },

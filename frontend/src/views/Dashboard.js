@@ -13,7 +13,14 @@ const Dashboard = () => {
    const [openModal, setOpenModal] = useState(false);
    const handleCloseModal = () => setOpenModal(false);
 
-   const [allGoals, setAllGoals] = useState([]);
+   const [allGoals, setAllGoals] = useState([
+      {
+         title: "Loading...",
+         _id: 0,
+         targetDate: "Loading...",
+         description: "Loading...",
+      },
+   ]);
 
    // Retrieving all goals of a user
    const getAllGoals = useCallback(async () => {

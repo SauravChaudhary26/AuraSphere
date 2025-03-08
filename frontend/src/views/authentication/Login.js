@@ -61,13 +61,14 @@ function Login() {
          const response = await axios.post(url, { email, password });
 
          if (response && response.data) {
-            const { message, success, jwtToken, name } = response.data;
+            const { message, success, jwtToken, name, userId } = response.data;
 
             if (success) {
                handleSuccess(message);
                console.log(jwtToken);
                localStorage.setItem("token", jwtToken);
                localStorage.setItem("loggedInUser", name);
+               localStorage.setItem("userId", userId);
 
                // Redirect after delay
                setTimeout(() => navigate("/dashboard"), 1000);

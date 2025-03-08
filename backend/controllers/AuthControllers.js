@@ -30,6 +30,7 @@ const signup = async (req, res) => {
          message: "Signed up successfully",
          success: true,
          jwtToken,
+         userId: savedUserData._id,
       });
    } catch (err) {
       res.status(500).json({
@@ -64,11 +65,14 @@ const login = async (req, res) => {
          { expiresIn: "240h" }
       );
 
+      console.log(user._id);
+
       res.status(200).json({
          message: "Logged in Successfully",
          success: true,
          jwtToken,
          name: user.name,
+         userId: user._id,
       });
    } catch (err) {
       res.status(500).json({
