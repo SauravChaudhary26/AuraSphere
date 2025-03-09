@@ -21,6 +21,7 @@ router.put(
    updateUserProfile
 );
 router.get("/google", googleAuth);
+
 // const authMiddleware = require("../middleware/Auth");
 
 module.exports = router;

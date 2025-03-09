@@ -33,7 +33,7 @@ const Links = [
    },
    {
       text: "Assignments",
-      path: "/assignments",
+      path: "/assignment",
       icon: <AssignmentRoundedIcon />,
    },
    {
@@ -58,7 +58,7 @@ const Links = [
    },
    {
       text: "Challenge a friend",
-      path: "/challengefriend",
+      path: "/challenge",
       icon: <GroupRoundedIcon />,
    },
    {

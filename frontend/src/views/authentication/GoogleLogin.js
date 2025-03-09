@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
 import { IconButton } from "@mui/material";
 import axios from "axios";
+import { handleError } from "../../utils/ToastMessages";
 
 const GoogleLogin = () => {
    //Google Login Code
@@ -22,6 +23,7 @@ const GoogleLogin = () => {
             throw new Error(authResult);
          }
       } catch (e) {
+         handleError("Create an account first");
          console.log("Error while Google Login...", e);
       }
    };

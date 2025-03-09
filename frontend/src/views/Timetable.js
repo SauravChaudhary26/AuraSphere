@@ -52,7 +52,6 @@ const Timetable = () => {
                }
             );
             const data = response.data;
-            console.log(data);
             if (data.timetable) {
                // Add an id for each cell (for rendering)
                const mappedTimetable = data.timetable.map((cell, index) => ({

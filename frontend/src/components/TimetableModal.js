@@ -1,25 +1,30 @@
-import React from "react";
 import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
 import Button from "@mui/material/Button";
+import React, { useEffect } from "react";
+import axios from "axios";
 import "./css/TimetableModal.css";
 
 const TimetableModal = ({ toggleModal, val, onSubjectChange }) => {
-   const subList = [
-      "Math",
-      "Science",
-      "English",
-      "History",
-      "Geography",
-      "Art",
-      "Music",
-      "PE",
-      "Computing",
-      "French",
-      "Spanish",
-      "German",
-      "Italian",
-   ];
+   const userId = localStorage.getItem("userId");
+   const [subList, setSubList] = React.useState([]);
+
+   useEffect(() => {
+      const fetchData = async () => {
+         try {
+            const url = `http://localhost:8080/courses/${userId}`;
+            const response = await axios.get(url);
+
+            const temp = response.data.map((course) => {
+               return course.name;
+            });
+            setSubList(temp);
+         } catch (error) {
+            console.error(error);
+         }
+      };
+      fetchData();
+   }, [userId]);
 
    // When a new subject is selected, notify the parent
    const handleChange = (event, newValue) => {

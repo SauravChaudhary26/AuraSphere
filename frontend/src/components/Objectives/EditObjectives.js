@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import Dialog from "@mui/material/Dialog";
@@ -23,10 +23,18 @@ const EditObjectives = ({
    getAllGoals,
 }) => {
    const [initialVal, setInitialVal] = useState({
-      title: prevTitle,
-      description: prevDescription,
-      targetDate: prevTarget,
+      title: "",
+      description: "",
+      targetDate: dayjs(),
    });
+
+   useEffect(() => {
+      setInitialVal({
+         title: prevTitle,
+         description: prevDescription,
+         targetDate: prevTarget,
+      });
+   }, [prevTitle, prevDescription, prevTarget]);
 
    const handleEdit = async () => {
       const title = initialVal.title;
@@ -50,13 +58,6 @@ const EditObjectives = ({
                },
             }
          );
-
-         // Update the goals state with the updated data
-         // setAllGoals((prevGoals) =>
-         //    prevGoals.map((goal) =>
-         //       goal._id === _id ? response.data.updatedGoal : goal
-         //    )
-         // );
          getAllGoals();
          handleCloseModal();
       } catch (error) {

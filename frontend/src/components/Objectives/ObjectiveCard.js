@@ -69,6 +69,7 @@ const ObjectiveCard = ({
       setOpenModal(false);
    };
    const handleOpenModal = () => {
+      // console.log(title, description, targetDate);
       setOpenModal(true);
    };
    const handleCardPin = () => {
