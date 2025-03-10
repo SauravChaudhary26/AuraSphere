@@ -1,68 +1,99 @@
-import React, { useState } from "react";
-import { Grid, TextField, Typography, Paper, Box } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import {
+   TextField,
+   Button,
+   Card,
+   CardContent,
+   Typography,
+   Grid,
+} from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
+import { toast } from "react-toastify";
 
-const Tester = () => {
-   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-   const hours = Array.from({ length: 10 }, (_, i) => `${i + 9}:00`);
+const API_USERS_URL = "http://localhost:8080/users"; // Your user search endpoint
 
-   const [schedule, setSchedule] = useState(
-      days.reduce((acc, day) => {
-         acc[day] = Array(10).fill("Break");
-         return acc;
-      }, {})
-   );
+const ChallengeAFriend = () => {
+   const [searchTerm, setSearchTerm] = useState("");
+   const [searchResults, setSearchResults] = useState([]);
+   const userId = localStorage.getItem("userId");
 
-   const handleChange = (day, hourIndex, value) => {
-      setSchedule((prev) => ({
-         ...prev,
-         [day]: prev[day].map((item, index) =>
-            index === hourIndex ? value : item
-         ),
-      }));
-   };
+   // Use a debounced search to avoid calling the API on every keystroke
+   useEffect(() => {
+      const delayDebounceFn = setTimeout(() => {
+         if (searchTerm.trim()) {
+            axios
+               .get(API_USERS_URL, {
+                  params: { search: searchTerm },
+                  headers: {
+                     Authorization: `Bearer ${localStorage.getItem("token")}`,
+                  },
+               })
+               .then((res) => {
+                  const filtered = res.data.filter(
+                     (user) => user._id !== userId
+                  );
+                  setSearchResults(filtered);
+               })
+               .catch((error) => {
+                  console.error("Error fetching users", error);
+                  toast.error("Error searching users");
+               });
+         } else {
+            setSearchResults([]);
+         }
+      }, 300); // delay of 300ms
+
+      return () => clearTimeout(delayDebounceFn);
+   }, [searchTerm, userId]);
 
    return (
-      <Box sx={{ padding: 2 }}>
-         <Typography variant="h4" gutterBottom>
-            Weekly Timetable
-         </Typography>
-         <Grid container spacing={2}>
-            <Grid item xs={2}>
-               <Paper elevation={3}>
-                  <Box p={2}>
-                     <Typography variant="h6">Time</Typography>
-                     {hours.map((hour) => (
-                        <Typography key={hour}>{hour}</Typography>
-                     ))}
-                  </Box>
-               </Paper>
-            </Grid>
-            {days.map((day) => (
-               <Grid item xs={2} key={day}>
-                  <Paper elevation={3}>
-                     <Box p={2}>
-                        <Typography variant="h6">{day}</Typography>
-                        {hours.map((hour, index) => (
-                           <TextField
-                              key={index}
-                              variant="outlined"
-                              size="small"
-                              fullWidth
-                              value={schedule[day][index]}
-                              onChange={(e) =>
-                                 handleChange(day, index, e.target.value)
-                              }
-                              placeholder="Enter task"
-                              margin="dense"
-                           />
-                        ))}
-                     </Box>
-                  </Paper>
-               </Grid>
-            ))}
+      <Grid container spacing={2} alignItems="center">
+         <Grid item xs={9}>
+            <TextField
+               fullWidth
+               label="Search users"
+               variant="outlined"
+               value={searchTerm}
+               onChange={(e) => setSearchTerm(e.target.value)}
+            />
          </Grid>
-      </Box>
+         <Grid item xs={3}>
+            <Button
+               variant="contained"
+               color="primary"
+               startIcon={<SearchIcon />}
+               // You might still include an onClick handler if needed
+               fullWidth
+            >
+               Search
+            </Button>
+         </Grid>
+         <Grid item xs={12}>
+            {searchResults.length === 0 ? (
+               <Typography variant="body1">No users found.</Typography>
+            ) : (
+               searchResults.map((user) => (
+                  <Card key={user._id} sx={{ mb: 2 }}>
+                     <CardContent
+                        sx={{
+                           display: "flex",
+                           justifyContent: "space-between",
+                           alignItems: "center",
+                        }}
+                     >
+                        <Typography variant="body1">{user.name}</Typography>
+                        {/* Your button to challenge the user */}
+                        <Button variant="outlined" color="primary">
+                           Challenge
+                        </Button>
+                     </CardContent>
+                  </Card>
+               ))
+            )}
+         </Grid>
+      </Grid>
    );
 };
 
-export default Tester;
+export default ChallengeAFriend;

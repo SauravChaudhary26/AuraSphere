@@ -6,7 +6,6 @@ const schedule = require("node-schedule");
 
 // Import routers
 const AuthRouter = require("./routes/authRouter");
-const GoalRouter = require("./routes/goalRouter"); // Import the goals router
 const MainRouter = require("./routes/mainRouter");
 
 const { updateLeaderboard } = require("./controllers/Leaderboard");
@@ -35,9 +34,8 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // Define routes
-app.use("/", JwtValidation, MainRouter);
 app.use("/auth", AuthRouter);
-app.use("/goals", GoalRouter); // Add the goals route
+app.use("/", JwtValidation, MainRouter);
 
 // Start the server
 app.listen(PORT, () => {
