@@ -6,6 +6,7 @@ const assignmentRouter = require("./assignmentRouter");
 const GoalRouter = require("./goalRouter");
 const userRouter = require("./userRouter");
 const challengeRouter = require("./challengeRouter");
+const leaderboardRouter = require("./leaderboardRouter");
 
 // Test route
 router.get("/test", (req, res) => {
@@ -13,7 +14,7 @@ router.get("/test", (req, res) => {
 });
 
 router.use("/goals", GoalRouter);
-router.use("/leaderboard", leaderboard);
+router.use("/leaderboard", leaderboardRouter);
 router.use("/users", userRouter);
 router.use("/timetable", timetableRouter);
 router.use("/courses", courseRouter);
