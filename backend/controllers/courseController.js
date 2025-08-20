@@ -13,6 +13,7 @@ const getCourses = async (req, res) => {
 
 // Add a course for a user
 const addCourse = async (req, res) => {
+    console.log(req.body);
    const { userId, name } = req.body;
    if (!userId || !name)
       return res.status(400).json({ message: "Missing data" });

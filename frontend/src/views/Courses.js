@@ -1,11 +1,15 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import {
-   TextField,
-   Button,
-   Card,
-   CardContent,
-   IconButton,
+    Box,
+    Typography,
+    TextField,
+    Button,
+    Card,
+    CardContent,
+    IconButton,
+    Stack,
+    Paper,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 
@@ -21,6 +25,7 @@ const Courses = () => {
    useEffect(() => {
       const fetchCourses = async () => {
          try {
+            console.log("fetching courses");
             const response = await axios.get(`${API_URL}/${userId}`);
             setCourses(response.data);
          } catch (error) {
@@ -64,56 +69,71 @@ const Courses = () => {
    };
 
    return (
-      <div style={{ maxWidth: "500px", margin: "auto", padding: "16px" }}>
-         <h2
-            style={{
-               fontSize: "1.25rem",
-               fontWeight: "bold",
-               marginBottom: "16px",
-            }}
-         >
+    <Box
+        sx={{
+            maxWidth: 600,
+            mx: "auto",
+            my: 3,
+            p: 3,
+            backgroundColor: "background.paper",
+            borderRadius: 2,
+            boxShadow: 3,
+        }}
+    >
+        <Typography variant="h5" fontWeight="bold" mb={2}>
             Your Courses
-         </h2>
-         <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
+        </Typography>
+
+        <Stack direction="row" spacing={2} mb={3}>
             <TextField
-               fullWidth
-               label="Enter course name"
-               variant="outlined"
-               value={course}
-               onChange={(e) => setCourse(e.target.value)}
-               onKeyPress={handleKeyPress}
+                fullWidth
+                label="Enter course name"
+                variant="outlined"
+                value={course}
+                onChange={(e) => setCourse(e.target.value)}
+                onKeyPress={handleKeyPress}
             />
             <Button
-               variant="contained"
-               color="primary"
-               onClick={handleAddCourse}
+                variant="contained"
+                color="primary"
+                onClick={handleAddCourse}
+                sx={{ whiteSpace: "nowrap", px: 3 }}
             >
-               Add
+                Add
             </Button>
-         </div>
-         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        </Stack>
+
+        <Stack spacing={2}>
             {courses.map((c) => (
-               <Card
-                  key={c._id}
-                  variant="outlined"
-                  style={{
-                     display: "flex",
-                     alignItems: "center",
-                     justifyContent: "space-between",
-                     padding: "8px",
-                  }}
-               >
-                  <CardContent>{c.name}</CardContent>
-                  <IconButton
-                     onClick={() => handleDeleteCourse(c._id)}
-                     color="error"
-                  >
-                     <DeleteIcon />
-                  </IconButton>
-               </Card>
+                <Paper
+                    key={c._id}
+                    variant="outlined"
+                    sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        p: 2,
+                        borderRadius: 2,
+                        transition: "0.3s",
+                        ":hover": {
+                            boxShadow: 4,
+                            backgroundColor: "grey.100",
+                        },
+                    }}
+                >
+                    <Typography variant="body1" fontWeight={500}>
+                        {c.name}
+                    </Typography>
+                    <IconButton
+                        onClick={() => handleDeleteCourse(c._id)}
+                        color="error"
+                    >
+                        <DeleteIcon />
+                    </IconButton>
+                </Paper>
             ))}
-         </div>
-      </div>
+        </Stack>
+    </Box>
    );
 };
 

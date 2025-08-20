@@ -10,7 +10,7 @@ import { handleError, handleSuccess } from "../utils/ToastMessages";
 
 const Timetable = () => {
    // Replace this with the actual authenticated user's ID
-   const userId = localStorage.getItem("userId");
+   const userId = localStorage.getItem("token");
 
    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
    const timeSlots = [
@@ -106,6 +106,11 @@ const Timetable = () => {
                      subject: cell.subject,
                   })),
                }),
+            },
+            {
+               headers: {
+                  Authorization: `Bearer ${userId}`,
+               },
             }
          );
          const data = await response.json();

@@ -2,7 +2,6 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 require("dotenv").config();
-const schedule = require("node-schedule");
 
 // Import routers
 const AuthRouter = require("./routes/authRouter");
@@ -40,10 +39,4 @@ app.use("/", JwtValidation, MainRouter);
 // Start the server
 app.listen(PORT, () => {
    console.log(`Server is running on port ${PORT}`);
-});
-
-// Refresh the leaderboard
-schedule.scheduleJob("0 0 * * *", () => {
-   console.log("Scheduled leaderboard update triggered");
-   updateLeaderboard();
 });

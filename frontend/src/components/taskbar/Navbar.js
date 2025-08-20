@@ -42,6 +42,8 @@ export default function Navbar() {
       navigate("/");
    };
 
+   const handleNavigate = () => navigate("/dashboard");
+
    return (
       <Box sx={{ flexGrow: 1 }}>
          <AppBar position="static">
@@ -56,7 +58,12 @@ export default function Navbar() {
                >
                   <MenuIcon />
                </IconButton>
-               <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+               <Typography
+                  variant="h6"
+                  component="div"
+                  sx={{ flexGrow: 1 }}
+                  onClick={handleNavigate}
+               >
                   AuraSphere
                </Typography>
 

@@ -13,7 +13,7 @@ router.get("/test", (req, res) => {
 });
 
 router.use("/goals", GoalRouter);
-router.get("/leaderboard", leaderboard);
+router.use("/leaderboard", leaderboard);
 router.use("/users", userRouter);
 router.use("/timetable", timetableRouter);
 router.use("/courses", courseRouter);
