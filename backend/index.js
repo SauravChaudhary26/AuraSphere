@@ -32,14 +32,14 @@ app.use((req, res, next) => {
 app.use(cors());
 app.use(bodyParser.json());
 
+// Test route
+app.get("/test", (req, res) => {
+   res.send("SERVER IS RUNNING FINE");
+});
+
 // Define routes
 app.use("/auth", AuthRouter);
 app.use("/", JwtValidation, MainRouter);
-
-// Test route
-router.get("/test", (req, res) => {
-   res.send("SERVER IS RUNNING FINE");
-});
 
 // Start the server
 app.listen(PORT, () => {
