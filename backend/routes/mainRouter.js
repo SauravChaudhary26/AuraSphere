@@ -8,11 +8,6 @@ const userRouter = require("./userRouter");
 const challengeRouter = require("./challengeRouter");
 const leaderboardRouter = require("./leaderboardRouter");
 
-// Test route
-router.get("/test", (req, res) => {
-   res.send("SERVER IS RUNNING FINE");
-});
-
 router.use("/goals", GoalRouter);
 router.use("/leaderboard", leaderboardRouter);
 router.use("/users", userRouter);

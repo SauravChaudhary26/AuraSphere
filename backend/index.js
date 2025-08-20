@@ -36,6 +36,11 @@ app.use(bodyParser.json());
 app.use("/auth", AuthRouter);
 app.use("/", JwtValidation, MainRouter);
 
+// Test route
+router.get("/test", (req, res) => {
+   res.send("SERVER IS RUNNING FINE");
+});
+
 // Start the server
 app.listen(PORT, () => {
    console.log(`Server is running on port ${PORT}`);
