@@ -1,6 +1,6 @@
-import UserModel from "../models/User.js";
+const UserModel = require("../models/User")
 
-export const getPoints = async (req, res) => {
+const getPoints = async (req, res) => {
     try {
         const user = await UserModel.findById(req.userId);
         if (!user) {
@@ -15,7 +15,7 @@ export const getPoints = async (req, res) => {
     }
 };
 
-export const setPoints = async (req, res) => {
+const setPoints = async (req, res) => {
     try {
         const user = await UserModel.findByIdAndUpdate(
             req.userId,
@@ -32,3 +32,8 @@ export const setPoints = async (req, res) => {
         return res.status(500).json({ message: "Internal server error" });
     }
 };
+
+module.exports = {
+	setPoints,
+	getPoints
+}

@@ -5,9 +5,12 @@ import AddObjective from "../components/Objectives/AddObjective";
 import axios from "axios";
 import { handleError } from "../utils/ToastMessages";
 import TypeWritter from "../components/TypeWritter";
+import { useDispatch } from "react-redux";
+import { fetchPoints } from "../utils/redux/pointsSlice";
 
 const Dashboard = () => {
     const token = localStorage.getItem("token");
+	const dispatch = useDispatch();
 
     // Opening and closing of Add Objective modal
     const [openModal, setOpenModal] = useState(false);
@@ -80,6 +83,8 @@ const Dashboard = () => {
             } else {
                 console.log("An error occurred while completing the objective.");
             }
+
+			dispatch(fetchPoints());
 
             setAllGoals((prevGoals) =>
                 prevGoals.filter((goal) => goal._id !== _id)

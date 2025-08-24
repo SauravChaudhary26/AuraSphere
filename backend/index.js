@@ -6,6 +6,7 @@ require("dotenv").config();
 // Import routers
 const AuthRouter = require("./routes/authRouter");
 const MainRouter = require("./routes/mainRouter");
+const cronRouter = require("./routes/cronRouter");
 
 const JwtValidation = require("./middlewares/JwtValidation");
 
@@ -38,6 +39,7 @@ app.get("/test", (req, res) => {
 
 // Define routes
 app.use("/auth", AuthRouter);
+app.use("/cron", cronRouter);
 app.use("/", JwtValidation, MainRouter);
 
 // Start the server
