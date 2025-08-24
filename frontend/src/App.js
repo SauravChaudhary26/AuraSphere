@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect } from "react";
 import "./App.css";
 import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
@@ -8,7 +8,8 @@ import StudyRoom from "./views/StudyRoom";
 import Demo from "./views/Demo.js";
 import { ToastContainer } from "react-toastify";
 import "./utils/axiosDefaults"; // Initialize global axios configuration
-
+import { useDispatch } from "react-redux";
+import { fetchPoints } from "./utils/redux/pointsSlice";
 
 // Lazy loading pages
 const Login = React.lazy(() => import("./views/authentication/Login"));
@@ -30,173 +31,179 @@ const ChallengeFriend = React.lazy(() => import("./views/ChallengeFriend"));
 
 // Default layout with navbar
 const DefaultLayout = () => (
-   <>
-      <Navbar />
-      <Outlet />
-      <ToastContainer />
-   </>
+    <>
+        <Navbar />
+        <Outlet />
+        <ToastContainer />
+    </>
 );
 
 // Google OAuth Wrapper
 const GoogleWrapper = () => (
-   <GoogleOAuthProvider clientId="440611299930-ijj44k8fgi6o720hogpva50fl8acm2sv.apps.googleusercontent.com">
-      <Suspense fallback={<Loader />}>
-         <Login />
-      </Suspense>
-   </GoogleOAuthProvider>
+    <GoogleOAuthProvider clientId="440611299930-ijj44k8fgi6o720hogpva50fl8acm2sv.apps.googleusercontent.com">
+        <Suspense fallback={<Loader />}>
+            <Login />
+        </Suspense>
+    </GoogleOAuthProvider>
 );
 
 const App = () => {
-   const router = createBrowserRouter(
-      [
-         {
-            path: "/",
-            element: (
-               <Suspense fallback={<Loader />}>
-                  <LandingPage />
-               </Suspense>
-            ),
-         },
-         {
-            path: "/login",
-            element: <GoogleWrapper />,
-         },
-         {
-            path: "/signup",
-            element: (
-               <Suspense fallback={<Loader />}>
-                  <Signup />
-               </Suspense>
-            ),
-         },
-         {
-            element: <DefaultLayout />, // Navbar applied to all other pages
-            children: [
-               {
-                  path: "/forgot-password",
-                  element: (
-                     <Suspense fallback={<Loader />}>
-                        <ForgotPassword />
-                     </Suspense>
-                  ),
-               },
-               {
-                  path: "/profile",
-                  element: (
-                     <Suspense fallback={<Loader />}>
-                        <Profile />
-                     </Suspense>
-                  ),
-               },
-               {
-                  path: "/events",
-                  element: (
-                     <Suspense fallback={<Loader />}>
-                        <Events />
-                     </Suspense>
-                  ),
-               },
-               {
-                  path: "/points",
-                  element: (
-                     <Suspense fallback={<Loader />}>
-                        <Points />
-                     </Suspense>
-                  ),
-               },
-               {
-                  path: "/attendance",
-                  element: (
-                     <Suspense fallback={<Loader />}>
-                        <Attendance />
-                     </Suspense>
-                  ),
-               },
-               {
-                  path: "/dashboard",
-                  element: (
-                     <Suspense fallback={<Loader />}>
-                        <Dashboard />
-                     </Suspense>
-                  ),
-               },
-               {
-                  path: "/leaderboard",
-                  element: (
-                     <Suspense fallback={<Loader />}>
-                        <Leaderboard />
-                     </Suspense>
-                  ),
-               },
-               {
-                  path: "/courses",
-                  element: (
-                     <Suspense fallback={<Loader />}>
-                        <Courses />
-                     </Suspense>
-                  ),
-               },
-               {
-                  path: "/studyroom",
-                  element: (
-                     <Suspense fallback={<Loader />}>
-                        <StudyRoom />
-                     </Suspense>
-                  ),
-               },
-               {
-                  path: "/timetable",
-                  element: (
-                     <Suspense fallback={<Loader />}>
-                        <Timetable />
-                     </Suspense>
-                  ),
-               },
-               {
-                  path: "/assignment",
-                  element: (
-                     <Suspense fallback={<Loader />}>
-                        <Assignments />
-                     </Suspense>
-                  ),
-               },
-               {
-                  path: "/demo_",
-                  element: <Demo />,
-               },
-               {
-                  path: "/challenge",
-                  element: (
-                     <Suspense fallback={<Loader />}>
-                        <ChallengeFriend />
-                     </Suspense>
-                  ),
-               },
-            ],
-         },
-         {
-            path: "/test",
-            element: (
-               <Suspense fallback={<Loader />}>
-                  <Tester />
-               </Suspense>
-            ),
-         },
-         {
-            path: "*",
-            element: (
-               <Suspense fallback={<Loader />}>
-                  <Error />
-               </Suspense>
-            ),
-         },
-      ],
-      {
-         future: { v7_startTransition: true, v7_relativeSplatPath: true },
-      }
-   );
+	const dispatch = useDispatch();
 
-   return <RouterProvider router={router} />;
+	useEffect(() => {
+		dispatch(fetchPoints());
+	}, [dispatch]);
+
+    const router = createBrowserRouter(
+        [
+            {
+                path: "/",
+                element: (
+                    <Suspense fallback={<Loader />}>
+                        <LandingPage />
+                    </Suspense>
+                ),
+            },
+            {
+                path: "/login",
+                element: <GoogleWrapper />,
+            },
+            {
+                path: "/signup",
+                element: (
+                    <Suspense fallback={<Loader />}>
+                        <Signup />
+                    </Suspense>
+                ),
+            },
+            {
+                element: <DefaultLayout />, // Navbar applied to all other pages
+                children: [
+                    {
+                        path: "/forgot-password",
+                        element: (
+                            <Suspense fallback={<Loader />}>
+                                <ForgotPassword />
+                            </Suspense>
+                        ),
+                    },
+                    {
+                        path: "/profile",
+                        element: (
+                            <Suspense fallback={<Loader />}>
+                                <Profile />
+                            </Suspense>
+                        ),
+                    },
+                    {
+                        path: "/events",
+                        element: (
+                            <Suspense fallback={<Loader />}>
+                                <Events />
+                            </Suspense>
+                        ),
+                    },
+                    {
+                        path: "/points",
+                        element: (
+                            <Suspense fallback={<Loader />}>
+                                <Points />
+                            </Suspense>
+                        ),
+                    },
+                    {
+                        path: "/attendance",
+                        element: (
+                            <Suspense fallback={<Loader />}>
+                                <Attendance />
+                            </Suspense>
+                        ),
+                    },
+                    {
+                        path: "/dashboard",
+                        element: (
+                            <Suspense fallback={<Loader />}>
+                                <Dashboard />
+                            </Suspense>
+                        ),
+                    },
+                    {
+                        path: "/leaderboard",
+                        element: (
+                            <Suspense fallback={<Loader />}>
+                                <Leaderboard />
+                            </Suspense>
+                        ),
+                    },
+                    {
+                        path: "/courses",
+                        element: (
+                            <Suspense fallback={<Loader />}>
+                                <Courses />
+                            </Suspense>
+                        ),
+                    },
+                    {
+                        path: "/studyroom",
+                        element: (
+                            <Suspense fallback={<Loader />}>
+                                <StudyRoom />
+                            </Suspense>
+                        ),
+                    },
+                    {
+                        path: "/timetable",
+                        element: (
+                            <Suspense fallback={<Loader />}>
+                                <Timetable />
+                            </Suspense>
+                        ),
+                    },
+                    {
+                        path: "/assignment",
+                        element: (
+                            <Suspense fallback={<Loader />}>
+                                <Assignments />
+                            </Suspense>
+                        ),
+                    },
+                    {
+                        path: "/demo_",
+                        element: <Demo />,
+                    },
+                    {
+                        path: "/challenge",
+                        element: (
+                            <Suspense fallback={<Loader />}>
+                                <ChallengeFriend />
+                            </Suspense>
+                        ),
+                    },
+                ],
+            },
+            {
+                path: "/test",
+                element: (
+                    <Suspense fallback={<Loader />}>
+                        <Tester />
+                    </Suspense>
+                ),
+            },
+            {
+                path: "*",
+                element: (
+                    <Suspense fallback={<Loader />}>
+                        <Error />
+                    </Suspense>
+                ),
+            },
+        ],
+        {
+            future: { v7_startTransition: true, v7_relativeSplatPath: true },
+        }
+    );
+
+    return <RouterProvider router={router} />;
 };
 
 export default App;

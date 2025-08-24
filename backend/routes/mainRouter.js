@@ -7,6 +7,7 @@ const GoalRouter = require("./goalRouter");
 const userRouter = require("./userRouter");
 const challengeRouter = require("./challengeRouter");
 const leaderboardRouter = require("./leaderboardRouter");
+const pointsRouter = require("./pointsRouter");
 
 router.use("/goals", GoalRouter);
 router.use("/leaderboard", leaderboardRouter);
@@ -15,5 +16,6 @@ router.use("/timetable", timetableRouter);
 router.use("/courses", courseRouter);
 router.use("/assignments", assignmentRouter);
 router.use("/challenges", challengeRouter);
+router.use("/points", pointsRouter);
 
 module.exports = router;

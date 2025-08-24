@@ -20,18 +20,18 @@ api.interceptors.request.use(
 );
 
 // Response interceptor to handle token expiration
-// api.interceptors.response.use(
-//   (response) => response,
-//   (error) => {
-//     if (error.response?.status === 401) {
-//       // Token expired or invalid
-//       localStorage.removeItem('token');
-//       localStorage.removeItem('userId');
-//       localStorage.removeItem('loggedInUser');
-//       window.location.href = '/login';
-//     }
-//     return Promise.reject(error);
-//   }
-// );
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token expired or invalid
+      localStorage.removeItem('token');
+      localStorage.removeItem('userId');
+      localStorage.removeItem('loggedInUser');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default api; 
