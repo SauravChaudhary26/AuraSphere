@@ -69,9 +69,23 @@ export default function Navbar() {
                         AuraSphere
                     </Typography>
 
-                    <div className="taskbar">
-                        ⭐ {points} Points
-                    </div>
+                    <div
+						style={{
+							display: "inline-flex",
+							alignItems: "center",
+							gap: "6px",
+							background: "linear-gradient(90deg, #4facfe, #00f2fe)",
+							color: "white",
+							fontWeight: "600",
+							fontSize: "16px",
+							padding: "6px 14px",
+							borderRadius: "14px",
+							boxShadow: "0 3px 8px rgba(0, 150, 255, 0.3)",
+							marginRight: "10px",
+						}}
+					>
+						<span style={{ fontSize: "18px" }}>⭐</span> {points} Aura
+					</div>
 
                     <Box sx={{ flexGrow: 0 }}>
                         <Tooltip title="Profile Menu">

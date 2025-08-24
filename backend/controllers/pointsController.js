@@ -17,15 +17,17 @@ export const getPoints = async (req, res) => {
 
 export const setPoints = async (req, res) => {
     try {
-        const points = await Points.findOneAndUpdate(
-            { user: req.user.id },
-            { $inc: { total: req.body.points } },
+        const user = await UserModel.findByIdAndUpdate(
+            req.userId,
+            { $inc: { aura: req.body.points } },  // increment aura instead of total
             { new: true }
         );
-        if (!points) {
-            return res.status(404).json({ message: "No points found" });
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
         }
-        return res.status(200).json(points);
+
+        return res.status(200).json({ points: user.aura });
     } catch (error) {
         return res.status(500).json({ message: "Internal server error" });
     }

@@ -1,4 +1,5 @@
 const Goal = require("../models/Goal");
+const setAura = require("../utils/addPoints");
 
 const addGoal = async (req, res) => {
    const { title, description, targetDate } = req.body;
@@ -105,10 +106,33 @@ const pinGoal = async (req, res) => {
    }
 };
 
+const completeGoal = async (req, res) => {
+	const { goalId } = req.params;
+
+	try {
+      const goal = await Goal.findOneAndDelete({
+         _id: goalId,
+         userId: req.userId,
+      });
+
+      if (!goal) {
+         return res.status(404).json({ message: "Goal not found" });
+      }
+
+	  await setAura(goal.userId, 10);
+
+      res.status(200).json({ message: "Goal completed successfully" });
+   } catch (error) {
+      console.error("Error deleting goal:", error.message);
+      res.status(500).json({ message: "Server error", error: error.message });
+   }
+}
+
 module.exports = {
    addGoal,
    getAllGoals,
    updateGoal,
    deleteGoal,
    pinGoal,
+   completeGoal,
 };

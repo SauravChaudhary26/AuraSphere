@@ -1,27 +1,30 @@
 const express = require("express");
-const authMiddleware = require("../middlewares/JwtValidation");
 const {
    addGoal,
    getAllGoals,
    updateGoal,
    deleteGoal,
    pinGoal,
+   completeGoal
 } = require("../controllers/GoalController");
 
 const router = express.Router();
 
 // Add a new goal
-router.post("/", authMiddleware, addGoal);
+router.post("/", addGoal);
 
 // Get all goals for the authenticated user
-router.get("/", authMiddleware, getAllGoals);
+router.get("/", getAllGoals);
+
+//Completing a goal
+router.get("/complete/:goalId", completeGoal);
 
 // Update a goal by ID
-router.put("/:goalId", authMiddleware, updateGoal);
+router.put("/:goalId", updateGoal);
 
 // Delete a goal by ID
-router.delete("/:goalId", authMiddleware, deleteGoal);
+router.delete("/:goalId", deleteGoal);
 
-router.patch("/pin", authMiddleware, pinGoal);
+router.patch("/pin", pinGoal);
 
 module.exports = router;

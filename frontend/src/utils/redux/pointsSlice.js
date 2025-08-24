@@ -5,7 +5,7 @@ import axios from "axios";
 export const fetchPoints = createAsyncThunk("points/fetchPoints", async () => {
     const response = await axios.get("/points");
 	console.log(response)
-    return response.data.total;
+    return response.data;
 });
 
 const pointsSlice = createSlice({
