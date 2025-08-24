@@ -19,12 +19,9 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import { handleError } from "../utils/ToastMessages";
 
-// API endpoints
-const ASSIGNMENT_API_URL = "http://localhost:8080/assignments";
-const COURSE_API_URL = "http://localhost:8080/courses";
-
 const Assignments = () => {
    const userId = localStorage.getItem("userId"); // Assume userId is stored here
+   const token = localStorage.getItem("token");
 
    // State for the assignment form
    const [assignmentForm, setAssignmentForm] = useState({
@@ -38,32 +35,36 @@ const Assignments = () => {
    const [courses, setCourses] = useState([]);
    const [assignments, setAssignments] = useState([]);
 
-   useEffect(() => {
-      // Fetch courses from the backend (for the dropdown)
-      const fetchCourses = async () => {
-         try {
-            const response = await axios.get(`${COURSE_API_URL}/${userId}`);
-            setCourses(response.data);
-         } catch (error) {
-            console.error("Error fetching courses", error);
-         }
-      };
+	useEffect(() => {
+		// Fetch courses from the backend (for the dropdown)
+		const fetchCourses = async () => {
+			try {
+				const response = await axios.get(
+					`/courses/${userId}`
+				);
+				setCourses(response.data);
+			} catch (error) {
+				console.error("Error fetching courses", error);
+			}
+		};
 
-      // Fetch assignments from the backend
-      const fetchAssignments = async () => {
-         try {
-            const response = await axios.get(`${ASSIGNMENT_API_URL}/${userId}`);
-            setAssignments(response.data);
-         } catch (error) {
-            console.error("Error fetching assignments", error);
-         }
-      };
+		// Fetch assignments from the backend
+		const fetchAssignments = async () => {
+			try {
+				const response = await axios.get(
+					`/assignments/${userId}`
+				);
+				setAssignments(response.data);
+			} catch (error) {
+				console.error("Error fetching assignments", error);
+			}
+		};
 
-      if (userId) {
-         fetchCourses();
-         fetchAssignments();
-      }
-   }, [userId]);
+		if (userId) {
+			fetchCourses();
+			fetchAssignments();
+		}
+	}, [userId, token]);
 
    // Handle input change for text fields
    const handleInputChange = (e) => {
@@ -92,7 +93,7 @@ const Assignments = () => {
             deadline: assignmentForm.deadline.toISOString(),
          };
 
-         const response = await axios.post(ASSIGNMENT_API_URL, payload);
+         const response = await axios.post('/assignments', payload);
          // Assume backend returns updated assignments list
          setAssignments(response.data);
          setAssignmentForm({
@@ -109,7 +110,7 @@ const Assignments = () => {
    // Toggle completion of an assignment. When completed, the assignment’s text is struck through.
    const handleCompleteAssignment = async (id, currentStatus) => {
       try {
-         const response = await axios.patch(`${ASSIGNMENT_API_URL}/${id}`, {
+         const response = await axios.patch(`/assignments/${id}`, {
             completed: !currentStatus,
          });
          // Update the assignment list with the modified assignment
@@ -124,7 +125,7 @@ const Assignments = () => {
    // Delete an assignment
    const handleDeleteAssignment = async (id) => {
       try {
-         await axios.delete(`${ASSIGNMENT_API_URL}/${id}`);
+         await axios.delete(`/assignments/${id}`);
          // Assume backend returns the updated assignments list
          setAssignments(assignments.filter((a) => a._id !== id));
       } catch (error) {

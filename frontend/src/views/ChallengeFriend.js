@@ -24,11 +24,8 @@ import dayjs from "dayjs";
 import { toast } from "react-toastify";
 import { handleError } from "../utils/ToastMessages";
 
-const API_USERS_URL = "http://localhost:8080/users";
-const API_CHALLENGES_URL = "http://localhost:8080/challenges";
-
-const token = localStorage.getItem("token");
-axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+const API_USERS_URL = "/users";
+const API_CHALLENGES_URL = "/challenges";
 
 const ChallengeAFriend = () => {
    const [searchTerm, setSearchTerm] = useState("");

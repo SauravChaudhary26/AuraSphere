@@ -13,9 +13,7 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-const API_URL = "http://localhost:8080/courses";
-const token = localStorage.getItem("token");
-axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+const API_URL = "/courses";
 
 const Courses = () => {
    const [course, setCourse] = useState("");

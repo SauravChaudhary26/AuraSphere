@@ -7,7 +7,6 @@ require("dotenv").config();
 const AuthRouter = require("./routes/authRouter");
 const MainRouter = require("./routes/mainRouter");
 
-const { updateLeaderboard } = require("./controllers/Leaderboard");
 const JwtValidation = require("./middlewares/JwtValidation");
 
 // Supress deprecation warnings

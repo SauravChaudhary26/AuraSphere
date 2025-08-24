@@ -12,12 +12,7 @@ const TimetableModal = ({ toggleModal, val, onSubjectChange }) => {
    useEffect(() => {
       const fetchData = async () => {
          try {
-            const url = `http://localhost:8080/courses/${userId}`;
-            const response = await axios.get(url, {
-               headers: {
-                  Authorization: `Bearer ${localStorage.getItem("token")}`,
-               },
-            });
+            const response = await axios.get(`/courses/${userId}`);
 
             const temp = response.data.map((course) => {
                return course.name;

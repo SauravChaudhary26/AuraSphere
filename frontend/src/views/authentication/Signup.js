@@ -54,7 +54,7 @@ function Signup() {
       }
 
       try {
-         const url = "http://localhost:8080/auth/signup";
+         const url = "https://aurasphere-rehd.onrender.com/auth/signup";
          const response = await axios.post(url, { name, email, password });
 
          const { message, success, error, jwtToken, userId } = response.data;
@@ -65,11 +65,22 @@ function Signup() {
             localStorage.setItem("loggedInUser", name);
             localStorage.setItem("userId", userId);
 
-            await axios.post("http://localhost:8080/timetable", {
-               userId,
-            });
+			console.log("User ID: ", userId);
+			console.log("JWT Token: ", jwtToken);
 
-            setTimeout(() => navigate("/dashboard"), 1000);
+            await axios.post(
+				"https://aurasphere-rehd.onrender.com/timetable",
+				{
+					userId,
+				},
+				{
+					headers: {
+						Authorization: `Bearer ${jwtToken}`,
+					},
+				}
+			);
+
+            setTimeout(() => navigate("/login"), 1000);
          } else if (error) {
             handleError(error.details[0]?.message || "Signup failed");
          } else {

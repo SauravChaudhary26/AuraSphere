@@ -7,6 +7,8 @@ import Navbar from "./components/taskbar/Navbar";
 import StudyRoom from "./views/StudyRoom";
 import Demo from "./views/Demo.js";
 import { ToastContainer } from "react-toastify";
+import "./utils/axiosDefaults"; // Initialize global axios configuration
+
 
 // Lazy loading pages
 const Login = React.lazy(() => import("./views/authentication/Login"));

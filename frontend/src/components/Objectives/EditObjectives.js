@@ -41,21 +41,13 @@ const EditObjectives = ({
       const targetDate = initialVal.targetDate;
       const description = initialVal.description;
 
-      const url = `http://localhost:8080/goals/${_id}`;
-      const token = localStorage.getItem("token");
-
       try {
          await axios.put(
-            url,
+            `/goals/${_id}`,
             {
                title: title,
                description: description,
                targetDate: targetDate,
-            },
-            {
-               headers: {
-                  Authorization: `Bearer ${token}`,
-               },
             }
          );
          getAllGoals();

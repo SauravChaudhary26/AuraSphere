@@ -17,21 +17,17 @@ const Dashboard = () => {
       {
          title: "Loading...",
          _id: 0,
-         targetDate: "Loading...",
+         targetDate: "00/00/0000",
          description: "Loading...",
       },
    ]);
 
    // Retrieving all goals of a user
    const getAllGoals = useCallback(async () => {
-      const url = "http://localhost:8080/goals";
+      const url = "https://aurasphere-rehd.onrender.com/goals";
 
       try {
-         const response = await axios.get(url, {
-            headers: {
-               Authorization: `Bearer ${token}`,
-            },
-         });
+         const response = await axios.get(url);
 
          const allGoals = response.data;
          setAllGoals(allGoals);
@@ -46,14 +42,10 @@ const Dashboard = () => {
 
    // Deleting a goal
    const handleDelete = async (goalId) => {
-      const url = `http://localhost:8080/goals/${goalId}`;
+      const url = `https://aurasphere-rehd.onrender.com/goals/${goalId}`;
 
       try {
-         await axios.delete(url, {
-            headers: {
-               Authorization: `Bearer ${token}`,
-            },
-         });
+         await axios.delete(url);
 
          // getAllGoals();
          setAllGoals((prevGoals) =>
@@ -66,15 +58,10 @@ const Dashboard = () => {
 
    //Submiting a goal
    const handleSubmit = async (formVals) => {
-      const url = "http://localhost:8080/goals";
+      const url = "https://aurasphere-rehd.onrender.com/goals";
 
       try {
-         const response = await axios.post(url, formVals, {
-            headers: {
-               "Content-Type": "application/json",
-               Authorization: `Bearer ${token}`,
-            },
-         });
+         const response = await axios.post(url, formVals);
 
          if (response.status === 200 || response.status === 201) {
             console.log("Objective added successfully!");
@@ -90,19 +77,14 @@ const Dashboard = () => {
 
    //Completing a goal
    const handleComplete = async (_id) => {
-      const url = `http://localhost:8080/goals/${_id}`;
+      const url = `https://aurasphere-rehd.onrender.com/goals/${_id}`;
 
       const data = {
          completed: true,
       };
 
       try {
-         const response = await axios.put(url, data, {
-            headers: {
-               "Content-Type": "application/json",
-               Authorization: `Bearer ${token}`,
-            },
-         });
+         const response = await axios.put(url, data);
          if (response.status === 200) {
             console.log("Objective completed successfully!");
          } else {
@@ -119,19 +101,13 @@ const Dashboard = () => {
 
    //Pinning and unpinning a goal
    const handlePin = async (_id) => {
-      const url = "http://localhost:8080/goals/pin";
+      const url = "https://aurasphere-rehd.onrender.com/goals/pin";
 
       try {
          const response = await axios.patch(
             url,
             {
                goalId: _id,
-            },
-            {
-               headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${token}`,
-               },
             }
          );
 

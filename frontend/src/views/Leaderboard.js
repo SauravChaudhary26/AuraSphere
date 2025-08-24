@@ -16,13 +16,7 @@ const Leaderboard = () => {
 
   const fetchData = async () => {
     try {
-      const url = "http://localhost:8080/leaderboard";
-      const token = localStorage.getItem("token"); // Get token from localStorage
-      const response = await axios.get(url, {
-        headers: {
-          Authorization: `Bearer ${token}`, // Pass token in Authorization header
-        },
-      });
+      const response = await axios.get('/leaderboard');
 
       const { message, success, userData } = response.data;
       if (success) {

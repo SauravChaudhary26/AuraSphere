@@ -44,12 +44,7 @@ const Timetable = () => {
             }
 
             const response = await axios.get(
-               `http://localhost:8080/timetable/${userId}`,
-               {
-                  headers: {
-                     Authorization: `Bearer ${token}`,
-                  },
-               }
+               `/timetable/${userId}`
             );
             const data = response.data;
             if (data.timetable) {
@@ -95,22 +90,12 @@ const Timetable = () => {
    // Save the updated timetable to the backend
    const saveTimetable = async () => {
       try {
-         const response = await fetch(
-            `http://localhost:8080/timetable/${userId}`,
+         const response = await axios.put(
+            `/timetable/${userId}`,
             {
-               method: "PUT",
-               headers: { "Content-Type": "application/json" },
-               // Only send the timetable array (each cell with its subject)
-               body: JSON.stringify({
-                  timetable: timetable.map((cell) => ({
-                     subject: cell.subject,
-                  })),
-               }),
-            },
-            {
-               headers: {
-                  Authorization: `Bearer ${userId}`,
-               },
+               timetable: timetable.map((cell) => ({
+                  subject: cell.subject,
+               })),
             }
          );
          const data = await response.json();
