@@ -4,12 +4,13 @@ import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import Loader from "./components/Loader"; // Import your custom loader
 import Navbar from "./components/taskbar/Navbar";
-import StudyRoom from "./views/StudyRoom";
+import StudyRoom from "./components/StudyRoom/StudyRoom";
 import Demo from "./views/Demo.js";
 import { ToastContainer } from "react-toastify";
 import "./utils/axiosDefaults"; // Initialize global axios configuration
 import { useDispatch } from "react-redux";
 import { fetchPoints } from "./utils/redux/pointsSlice";
+import "./views/css/tailwind.css"
 
 // Lazy loading pages
 const Login = React.lazy(() => import("./views/authentication/Login"));
@@ -28,6 +29,7 @@ const Courses = React.lazy(() => import("./views/Courses"));
 const Timetable = React.lazy(() => import("./views/Timetable"));
 const Assignments = React.lazy(() => import("./views/Assignment"));
 const ChallengeFriend = React.lazy(() => import("./views/ChallengeFriend"));
+const ReportIssue = React.lazy(() => import("./views/ReportIssue"));
 
 // Default layout with navbar
 const DefaultLayout = () => (
@@ -179,6 +181,14 @@ const App = () => {
                             </Suspense>
                         ),
                     },
+					{
+						path: "/report-issue",
+						element: (
+							<Suspense fallback={<Loader />}>
+								<ReportIssue />
+							</Suspense>
+						),
+					}
                 ],
             },
             {

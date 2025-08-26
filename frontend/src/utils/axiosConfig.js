@@ -2,7 +2,8 @@ import axios from 'axios';
 
 // Create axios instance
 const api = axios.create({
-  baseURL: 'https://aurasphere-rehd.onrender.com',
+//   baseURL: 'https://aurasphere-rehd.onrender.com',
+	baseURL: 'http://localhost:8080',
 });
 
 // Request interceptor to add JWT token

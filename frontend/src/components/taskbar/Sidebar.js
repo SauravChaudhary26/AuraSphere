@@ -71,7 +71,7 @@ const Links = [
 const extraLinks = [
    {
       text: "Report an issue",
-      path: "/issues",
+      path: "/report-issue",
       icon: <BugReportRoundedIcon />,
    },
    {

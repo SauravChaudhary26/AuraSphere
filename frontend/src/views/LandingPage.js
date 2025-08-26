@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import "./css/LandingPage.css"; // Add custom styles here
+import "./css/tailwind.css"
 
 const LandingPage = () => {
   return (

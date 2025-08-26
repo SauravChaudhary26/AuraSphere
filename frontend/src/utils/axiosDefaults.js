@@ -1,7 +1,9 @@
 import axios from 'axios';
 
 // Set base URL
-axios.defaults.baseURL = 'https://aurasphere-rehd.onrender.com';
+// axios.defaults.baseURL = 'https://aurasphere-rehd.onrender.com';
+axios.defaults.baseURL = 'http://localhost:8080';
+
 
 // Function to update auth header
 export const updateAuthHeader = () => {
