@@ -17,7 +17,7 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     // Replace with your backend URL
-    const newSocket = io(process.env.REACT_APP_BACKEND_URL || 'http://localhost:8080', {
+    const newSocket = io(process.env.REACT_APP_BACKEND_URL || 'https://aurasphere-rehd.onrender.com', {
       transports: ['websocket', 'polling'],
       timeout: 20000,
     });
