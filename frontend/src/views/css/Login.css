@@ -10,7 +10,7 @@
 
 /* Styling for the login container */
 .loginContainer {
-    width: 30%;
+    width: 40%;
     max-width: 500px; /* Prevents excessive width on larger screens */
     min-width: 300px; /* Prevents the box from shrinking too much */
     height: auto;

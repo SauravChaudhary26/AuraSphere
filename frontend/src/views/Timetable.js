@@ -1,216 +1,238 @@
-import React, { useState, useEffect } from "react";
-import TimetableModal from "../components/TimetableModal";
-import { Button } from "@mui/material";
-import "./css/container.css";
-import "./css/tailwind.css";
-import axios from "axios";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { handleError, handleSuccess } from "../utils/ToastMessages";
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 
 const Timetable = () => {
-   // Replace this with the actual authenticated user's ID
-   const userId = localStorage.getItem("token");
+    const [courses, setCourses] = useState([]);
+    const [timetable, setTimetable] = useState({});
+    const [loading, setLoading] = useState(true);
 
-   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-   const timeSlots = [
-      "8 AM",
-      "9 AM",
-      "10 AM",
-      "11 AM",
-      "12 PM",
-      "1 PM",
-      "2 PM",
-      "3 PM",
-      "4 PM",
-      "5 PM",
-   ];
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+    const timeSlots = [
+        '09:00-10:00',
+        '10:00-11:00',
+        '11:00-12:00',
+        '12:00-13:00',
+        '13:00-14:00',
+        '14:00-15:00',
+        '15:00-16:00',
+        '16:00-17:00'
+    ];
 
-   const [timetable, setTimetable] = useState([]);
-   const [editMode, setEditMode] = useState(false);
-   const [modal, setModal] = useState(false);
-   const [selectedCell, setSelectedCell] = useState(null);
-   const [backupTimetable, setBackupTimetable] = useState([]);
+    useEffect(() => {
+        fetchCoursesAndTimetable();
+    }, []);
 
-   // Fetch the timetable on component mount
-   useEffect(() => {
-      const fetchTimetable = async () => {
-         try {
-            const token = localStorage.getItem("token");
+    const fetchCoursesAndTimetable = async () => {
+        try {
+            // Note: In your actual implementation, replace these with your axios calls
+			const userId = localStorage.getItem('userId');
+            const [coursesResponse, timetableResponse] = await Promise.all([
+                axios.get('/courses/' + userId),
+                axios.get('/timetable')
+            ]);
 
-            if (!token || !userId) {
-               handleError("Please login to view your timetable");
-               return;
+            setCourses(coursesResponse);
+			console.log("courses: " , coursesResponse);
+            
+            // Convert timetable array to object for easier lookup
+            const timetableObj = {};
+            timetableResponse.data.forEach(entry => {
+                const key = `${entry.day}-${entry.timeSlot}`;
+                timetableObj[key] = entry;
+            });
+            setTimetable(timetableObj);
+            
+            setLoading(false);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            setLoading(false);
+        }
+    };
+
+    const handleSlotChange = async (day, timeSlot, courseId) => {
+        try {
+            const key = `${day}-${timeSlot}`;
+            
+            if (courseId === '') {
+                // Remove the entry
+                // In your actual implementation, use:
+                // await axios.delete('/timetable', { data: { day, timeSlot } });
+                console.log('Removing entry for', day, timeSlot);
+                
+                const newTimetable = { ...timetable };
+                delete newTimetable[key];
+                setTimetable(newTimetable);
+            } else {
+                // Add/Update the entry
+                // In your actual implementation, use:
+                // const response = await axios.post('/timetable', { day, timeSlot, courseId });
+                console.log('Adding/updating entry for', day, timeSlot, courseId);
+                
+                const course = courses.find(c => c._id === courseId);
+                const mockResponse = {
+                    data: {
+                        day,
+                        timeSlot,
+                        courseId: { _id: courseId, name: course.name, code: course.code }
+                    }
+                };
+                
+                setTimetable({
+                    ...timetable,
+                    [key]: mockResponse.data
+                });
             }
+        } catch (error) {
+            console.error('Error updating timetable:', error);
+            alert('Error updating timetable. Please try again.');
+        }
+    };
 
-            const response = await axios.get(
-               `/timetable/${userId}`
-            );
-            const data = response.data;
-            if (data.timetable) {
-               // Add an id for each cell (for rendering)
-               const mappedTimetable = data.timetable.map((cell, index) => ({
-                  ...cell,
-                  id: index + 1,
-               }));
-               setTimetable(mappedTimetable);
-               setBackupTimetable(mappedTimetable);
-            }
-         } catch (error) {
-            console.error("Error fetching timetable:", error);
-         }
-      };
-      fetchTimetable();
-   }, [userId]);
-
-   const toggleModal = () => {
-      setModal((prev) => !prev);
-   };
-
-   const handleCardClick = (cell) => {
-      if (editMode) {
-         setSelectedCell(cell);
-         toggleModal();
-      }
-   };
-
-   // Update the subject of a specific cell in state
-   const handleSubjectChange = (newSubject) => {
-      if (selectedCell) {
-         const updatedTimetable = timetable.map((cell) =>
-            cell.id === selectedCell.id
-               ? { ...cell, subject: newSubject }
-               : cell
-         );
-         setTimetable(updatedTimetable);
-         setSelectedCell({ ...selectedCell, subject: newSubject });
-      }
-   };
-
-   // Save the updated timetable to the backend
-   const saveTimetable = async () => {
-      try {
-         const response = await axios.put(
-            `/timetable/${userId}`,
-            {
-               timetable: timetable.map((cell) => ({
-                  subject: cell.subject,
-               })),
-            }
-         );
-         const data = await response.json();
-         if (response.ok) {
-            handleSuccess("Timetable saved successfully");
-            setBackupTimetable(timetable);
-         } else {
-            console.error("Error saving timetable:", data.error);
-         }
-      } catch (error) {
-         console.error("Error saving timetable:", error);
-      }
-      setEditMode(false);
-      setSelectedCell(null);
-   };
-
-   // Revert state to the backup timetable
-   const cancelEdit = () => {
-      setTimetable(backupTimetable);
-      setEditMode(false);
-      setSelectedCell(null);
-   };
-
-   return (
-      <div className="outer flex flex-col items-center justify-center min-h-screen p-4">
-         <div className="w-full overflow-x-auto">
-            {/* Time Slot Headers */}
-            <div className="flex justify-center min-w-[1000px]">
-               <div className="min-w-[96px] flex-shrink-0"></div>
-               <div className="grid grid-cols-10 gap-1">
-                  {timeSlots.map((slot, idx) => (
-                     <div
-                        key={idx}
-                        className="min-w-[96px] p-2 text-center font-semibold border bg-gray-100 flex-shrink-0"
-                     >
-                        {slot}
-                     </div>
-                  ))}
-               </div>
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-navy-900 to-slate-800 flex items-center justify-center">
+                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20">
+                    <div className="flex items-center space-x-3">
+                        <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        <div className="text-white text-lg font-medium">Loading your timetable...</div>
+                    </div>
+                </div>
             </div>
+        );
+    }
 
-            {/* Day Labels & Timetable Cells */}
-            <div className="flex justify-center min-w-[1000px]">
-               <div className="flex flex-col">
-                  {days.map((day, idx) => (
-                     <div
-                        key={idx}
-                        className="h-16 min-w-[96px] flex items-center justify-center p-2 font-semibold border bg-gray-100 flex-shrink-0"
-                     >
-                        {day}
-                     </div>
-                  ))}
-               </div>
-               <div className="grid grid-cols-10 gap-1">
-                  {timetable.map((cell) => (
-                     <div
-                        key={cell.id}
-                        className="h-16 min-w-[96px] border flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors flex-shrink-0"
-                        onClick={() => handleCardClick(cell)}
-                     >
-                        <span className="text-sm">{cell.subject}</span>
-                     </div>
-                  ))}
-               </div>
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-navy-900 to-slate-800 p-6">
+            <div className="container mx-auto max-w-7xl">
+                <div className="text-center mb-10">
+                    <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">
+                        My Timetable
+                    </h1>
+                    <div className="w-24 h-1 bg-gradient-to-r from-blue-400 to-indigo-400 mx-auto rounded-full"></div>
+                </div>
+                
+                <div className="bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 overflow-hidden shadow-2xl">
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead>
+                                <tr className="bg-gradient-to-r from-navy-600 to-blue-600 text-white">
+                                    <th className="p-6 text-left font-bold text-lg border-r border-white/20">
+                                        <div className="flex items-center space-x-2">
+                                            <div className="w-2 h-2 bg-white rounded-full"></div>
+                                            <span>Time</span>
+                                        </div>
+                                    </th>
+                                    {days.map((day, index) => (
+                                        <th key={day} className={`p-6 text-center font-bold text-lg min-w-48 ${
+                                            index < days.length - 1 ? 'border-r border-white/20' : ''
+                                        }`}>
+                                            <div className="flex flex-col items-center space-y-1">
+                                                <span>{day.charAt(0).toUpperCase() + day.slice(1)}</span>
+                                                <div className="w-8 h-0.5 bg-white/40 rounded-full"></div>
+                                            </div>
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/10">
+                                {timeSlots.map((timeSlot, rowIndex) => (
+                                    <tr key={timeSlot} className="hover:bg-white/5 transition-colors duration-200">
+                                        <td className="p-6 font-bold text-white text-lg bg-gradient-to-r from-slate-800/50 to-transparent border-r border-white/10">
+                                            <div className="flex items-center space-x-3">
+                                                <div className="w-3 h-3 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full"></div>
+                                                <span>{timeSlot}</span>
+                                            </div>
+                                        </td>
+                                        {days.map((day, colIndex) => {
+                                            const key = `${day}-${timeSlot}`;
+                                            const currentEntry = timetable[key];
+                                            
+                                            return (
+                                                <td key={key} className={`p-4 ${
+                                                    colIndex < days.length - 1 ? 'border-r border-white/10' : ''
+                                                }`}>
+                                                    <div className="relative">
+                                                        <select
+                                                            className="w-full p-4 bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl text-white placeholder-white/60 focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200 hover:bg-white/15 cursor-pointer appearance-none"
+                                                            value={currentEntry?.courseId?._id || ''}
+                                                            onChange={(e) => handleSlotChange(day, timeSlot, e.target.value)}
+                                                        >
+                                                            <option value="" className="bg-slate-800 text-white">
+                                                                Free
+                                                            </option>
+                                                            {courses.map(course => (
+                                                                <option key={course._id} value={course._id} className="bg-slate-800 text-white">
+                                                                    {course.name}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                        <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+                                                            <svg className="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                            </svg>
+                                                        </div>
+                                                        {currentEntry && (
+                                                            <div className="absolute top-0 right-0 w-3 h-3 bg-green-400 rounded-full border-2 border-white -translate-y-1 translate-x-1"></div>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            );
+                                        })}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div className="mt-8 text-center">
+                    <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10 inline-block">
+                        <p className="text-white/80 text-lg font-medium">
+                            ✨ Select courses for each time slot to build your perfect schedule
+                        </p>
+                        <div className="flex items-center justify-center space-x-6 mt-4 text-sm text-white/60">
+                            <div className="flex items-center space-x-2">
+                                <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                                <span>Scheduled</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <div className="w-3 h-3 bg-white/30 rounded-full"></div>
+                                <span>Available</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-         </div>
-
-         {/* Edit / Save / Cancel Buttons */}
-         <div className="mt-4">
-            {!editMode && (
-               <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={() => {
-                     setBackupTimetable(timetable);
-                     setEditMode(true);
-                  }}
-                  className="m-2 px-6 py-2 text-lg"
-               >
-                  Edit
-               </Button>
-            )}
-            {editMode && (
-               <div className="flex space-x-4 justify-center">
-                  <Button
-                     variant="contained"
-                     color="success"
-                     onClick={saveTimetable}
-                     className="m-2 px-6 py-2 text-lg"
-                  >
-                     Save
-                  </Button>
-                  <Button
-                     variant="outlined"
-                     color="error"
-                     onClick={cancelEdit}
-                     className="m-2 px-6 py-2 text-lg"
-                  >
-                     Cancel
-                  </Button>
-               </div>
-            )}
-         </div>
-
-         {/* Timetable Modal */}
-         {modal && (
-            <TimetableModal
-               toggleModal={toggleModal}
-               val={selectedCell ? selectedCell.subject : ""}
-               onSubjectChange={handleSubjectChange}
-            />
-         )}
-         <ToastContainer />
-      </div>
-   );
+            
+            {/* Custom styles for webkit browsers */}
+            <style jsx>{`
+                select option {
+                    background-color: rgb(30 41 59) !important;
+                    color: white !important;
+                }
+                
+                /* Custom scrollbar */
+                ::-webkit-scrollbar {
+                    width: 8px;
+                    height: 8px;
+                }
+                
+                ::-webkit-scrollbar-track {
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: 10px;
+                }
+                
+                ::-webkit-scrollbar-thumb {
+                    background: rgba(59, 130, 246, 0.5);
+                    border-radius: 10px;
+                }
+                
+                ::-webkit-scrollbar-thumb:hover {
+                    background: rgba(59, 130, 246, 0.7);
+                }
+            `}</style>
+        </div>
+    );
 };
 
 export default Timetable;

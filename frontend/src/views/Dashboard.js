@@ -20,7 +20,7 @@ const Dashboard = () => {
 
     // Retrieving all goals of a user
     const getAllGoals = useCallback(async () => {
-        const url = "https://aurasphere-rehd.onrender.com/goals";
+        const url = "/goals";
 
         try {
             const response = await axios.get(url);
@@ -31,7 +31,7 @@ const Dashboard = () => {
         } catch (error) {
             handleError(error);
         }
-    }, [token]);
+    }, []);
 
     useEffect(() => {
         getAllGoals();
@@ -39,7 +39,7 @@ const Dashboard = () => {
 
     // Deleting a goal
     const handleDelete = async (goalId) => {
-        const url = `https://aurasphere-rehd.onrender.com/goals/${goalId}`;
+        const url = `/goals/${goalId}`;
 
         try {
             await axios.delete(url);
@@ -55,7 +55,7 @@ const Dashboard = () => {
 
     // Submiting a goal
     const handleSubmit = async (formVals) => {
-        const url = "https://aurasphere-rehd.onrender.com/goals";
+        const url = "/goals";
 
         try {
             const response = await axios.post(url, formVals);
@@ -74,7 +74,7 @@ const Dashboard = () => {
 
     // Completing a goal
     const handleComplete = async (_id) => {
-        const url = `https://aurasphere-rehd.onrender.com/goals/complete/${_id}`;
+        const url = `/goals/complete/${_id}`;
 
         try {
             const response = await axios.get(url);
@@ -96,7 +96,7 @@ const Dashboard = () => {
 
     // Pinning and unpinning a goal
     const handlePin = async (_id) => {
-        const url = "https://aurasphere-rehd.onrender.com/goals/pin";
+        const url = "/goals/pin";
 
         try {
             const response = await axios.patch(

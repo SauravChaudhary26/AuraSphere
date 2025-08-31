@@ -11,7 +11,7 @@ const StudyRoom = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [roomUsers, setRoomUsers] = useState([]);
   const [gameState, setGameState] = useState('join'); // 'join', 'studying', 'break'
-  const [roomId] = useState('default-room'); // You can make this dynamic
+  const [roomId] = useState('default-room'); // Static for now
   const [error, setError] = useState('');
   const [completedDuration, setCompletedDuration] = useState(0);
 

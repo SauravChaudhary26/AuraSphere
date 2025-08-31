@@ -1,4 +1,4 @@
-import { React, useState } from "react";
+import { useState } from "react";
 import axios from "axios";
 import TextField from "@mui/material/TextField";
 import IconButton from "@mui/material/IconButton";
@@ -57,7 +57,7 @@ function Login() {
       }
 
       try {
-         const url = "https://aurasphere-rehd.onrender.com/auth/login";
+         const url = "/auth/login";
          const response = await axios.post(url, { email, password });
 
          if (response && response.data) {

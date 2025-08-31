@@ -13,7 +13,7 @@ const GoogleLogin = () => {
          if (authResult["code"]) {
             console.log(authResult.code);
             const code = authResult.code;
-            const url = `https://aurasphere-rehd.onrender.com/auth/google?code=${authResult.code}`;
+            const url = `/auth/google?code=${authResult.code}`;
             const result = await axios.get(url, { code });
             localStorage.setItem("token", result.data.jwtToken);
             localStorage.setItem("loggedInUser", result.data.name);

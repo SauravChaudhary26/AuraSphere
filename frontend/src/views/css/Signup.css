@@ -10,8 +10,8 @@
 
 /* Styling for the login container */
 .signup-Container {
-  width: 35%;
-  max-width: 500px; /* Prevents excessive width on larger screens */
+  width: 45%;
+  max-width: 500px;
   min-width: 300px; /* Prevents the box from shrinking too much */
   height: auto;
   padding: 2% 3%;

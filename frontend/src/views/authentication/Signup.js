@@ -54,7 +54,7 @@ function Signup() {
       }
 
       try {
-         const url = "https://aurasphere-rehd.onrender.com/auth/signup";
+         const url = "/auth/signup";
          const response = await axios.post(url, { name, email, password });
 
          const { message, success, error, jwtToken, userId } = response.data;
@@ -69,7 +69,7 @@ function Signup() {
 			console.log("JWT Token: ", jwtToken);
 
             await axios.post(
-				"https://aurasphere-rehd.onrender.com/timetable",
+				"/timetable",
 				{
 					userId,
 				},

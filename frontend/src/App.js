@@ -30,6 +30,7 @@ const Timetable = React.lazy(() => import("./views/Timetable"));
 const Assignments = React.lazy(() => import("./views/Assignment"));
 const ChallengeFriend = React.lazy(() => import("./views/ChallengeFriend"));
 const ReportIssue = React.lazy(() => import("./views/ReportIssue"));
+const Contact = React.lazy(() => import("./views/ContactUs"));
 
 // Default layout with navbar
 const DefaultLayout = () => (
@@ -186,6 +187,14 @@ const App = () => {
 						element: (
 							<Suspense fallback={<Loader />}>
 								<ReportIssue />
+							</Suspense>
+						),
+					},
+					{
+						path: "/contact",
+						element: (
+							<Suspense fallback={<Loader />}>
+								<Contact />
 							</Suspense>
 						),
 					}
