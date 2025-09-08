@@ -15,11 +15,6 @@ const Timetable = () => {
         '13:00-14:00', '14:00-15:00', '15:00-16:00', '16:00-17:00'
     ];
 
-    useEffect(() => {
-        fetchCourses();
-        fetchTimetable();
-    }, [fetchTimetable, fetchCourses]);
-
     const fetchCourses = async () => {
         try {
             const response = await axios.get('/courses');
@@ -92,6 +87,12 @@ const Timetable = () => {
     const getSelectedCourse = (courseId) => {
         return courses.find(course => course._id === courseId);
     };
+
+    
+    useEffect(() => {
+        fetchCourses();
+        fetchTimetable();
+    }, []);
 
     if (loading) {
         return (
