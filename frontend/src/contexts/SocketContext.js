@@ -16,7 +16,7 @@ export const SocketProvider = ({ children }) => {
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    const newSocket = io("https://aurasphere-rehd.onrender.com" || window.location.origin, {
+    const newSocket = io("https://aurasphere-rehd.onrender.com", {
       transports: ['websocket', 'polling'],
       timeout: 20000,
     });

@@ -11,7 +11,7 @@ const JwtValidation = (req, res, next) => {
     // Extract the token by removing the "Bearer " prefix
     const token = authHeader.split(" ")[1];
 
-    console.log(token);
+    // console.log(token);
 
     if (!token) {
         return res
@@ -21,7 +21,7 @@ const JwtValidation = (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        console.log("decoded", decoded);
+        // console.log("decoded", decoded);
         req.userId = decoded._id; // token payload includes an `id` field for the user ID
         // console.log(req.userId);
 

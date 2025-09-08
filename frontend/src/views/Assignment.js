@@ -20,7 +20,7 @@ import dayjs from "dayjs";
 import { handleError } from "../utils/ToastMessages";
 
 const Assignments = () => {
-   const userId = localStorage.getItem("userId"); // Assume userId is stored here
+   const userId = localStorage.getItem("userId");
    const token = localStorage.getItem("token");
 
    // State for the assignment form
@@ -40,7 +40,7 @@ const Assignments = () => {
 		const fetchCourses = async () => {
 			try {
 				const response = await axios.get(
-					`/courses/${userId}`
+					`/courses`
 				);
 				setCourses(response.data);
 			} catch (error) {

@@ -7,7 +7,7 @@ const {
 
 const router = express.Router();
 
-router.get("/:userId", getCourses);
+router.get("/", getCourses);
 router.post("/", addCourse);
 router.delete("/", deleteCourse);
 
