@@ -16,7 +16,7 @@
 - **Courses & color-coded timetable** — organize courses and lay them out across the week.
 - **Attendance** — mark present/absent per course with running percentage stats.
 - **Assignments** — deadlines with completion rewards.
-- **Study rooms** — authenticated, real-time Pomodoro sessions over Socket.IO.
+- **Study rooms** — create or join live rooms (public list or 6-letter code) with a shared, host-controlled Pomodoro timer, WebRTC video & voice, chat with a "deep focus" lock, per-person session goals, emoji reactions, ambient sounds, an in-room leaderboard, and Aura rewards for completed focus sessions (server-side, daily-capped).
 - **Friend challenges** — dare a real user to a goal; completing it awards Aura.
 - **Leaderboard** — all-time, weekly, and daily, with your own rank.
 - **Events & exam countdown** — live countdowns to what matters.
@@ -57,7 +57,8 @@ Environment variables are documented in [`backend/.env.example`](backend/.env.ex
 ## 🧪 Tests
 
 ```bash
-cd backend && npm test        # Jest + Supertest (API health)
+cd backend && npm test                    # full suite (needs env/DB for the API health spec)
+cd backend && npx jest tests/studyRoom    # study-room store + timer engine (no DB needed)
 ```
 
 ---

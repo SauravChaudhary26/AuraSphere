@@ -218,18 +218,72 @@ export function Modal({ open, onClose, title, children, footer, size = "md" }) {
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
       onMouseDown={(e) => e.target === e.currentTarget && onClose?.()}
     >
-      <div role="dialog" aria-modal="true" aria-label={title} className={cx("w-full card-surface p-6", maxW)}>
-        <div className="mb-4 flex items-center justify-between">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        className={cx("flex max-h-[calc(100dvh-2rem)] w-full flex-col card-surface p-6", maxW)}
+      >
+        <div className="mb-4 flex shrink-0 items-center justify-between">
           <h2 className="text-lg font-bold">{title}</h2>
           <button onClick={onClose} aria-label="Close" className="rounded-lg p-1 text-muted hover:bg-surface-2 hover:text-ink">
             <X size={20} />
           </button>
         </div>
-        <div>{children}</div>
-        {footer && <div className="mt-6 flex justify-end gap-3">{footer}</div>}
+        <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
+        {footer && <div className="mt-6 flex shrink-0 justify-end gap-3">{footer}</div>}
       </div>
     </div>,
     document.body
+  );
+}
+
+/* ---------------------------------------------------------------------- Tabs */
+export function Tabs({ tabs, active, onChange, className }) {
+  return (
+    <div className={cx("flex gap-1 rounded-xl bg-surface-2 p-1", className)}>
+      {tabs.map(({ id, label, icon: Icon, badge }) => (
+        <button
+          key={id}
+          type="button"
+          onClick={() => onChange?.(id)}
+          className={cx(
+            "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold transition",
+            active === id ? "bg-surface text-ink shadow-card" : "text-muted hover:text-ink"
+          )}
+        >
+          {Icon && <Icon size={15} />}
+          {label}
+          {badge ? (
+            <span className="rounded-full bg-primary px-1.5 text-[10px] font-bold text-on-primary">{badge}</span>
+          ) : null}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------- Switch */
+export function Switch({ checked, onChange, disabled, label, className }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      disabled={disabled}
+      onClick={() => onChange?.(!checked)}
+      className={cx("inline-flex items-center gap-2.5", disabled && "cursor-not-allowed opacity-50", className)}
+    >
+      <span className={cx("relative h-6 w-10 shrink-0 rounded-full transition-all", checked ? "bg-primary" : "bg-border")}>
+        <span
+          className={cx(
+            "absolute top-1 h-4 w-4 rounded-full bg-surface shadow-card transition-all",
+            checked ? "translate-x-5" : "translate-x-1"
+          )}
+        />
+      </span>
+      {label && <span className="text-left text-sm text-ink">{label}</span>}
+    </button>
   );
 }
 

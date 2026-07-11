@@ -3,14 +3,20 @@ const { Server } = require("socket.io");
 
 const app = require("./app");
 const { config, assertConfig } = require("./config");
+const { corsOriginHandler } = require("./utils/corsOrigin");
 const { connectDB, disconnectDB } = require("./db");
 const { registerStudyRoomHandlers } = require("./sockets/studyRoom");
 const { startSchedulers } = require("./services/scheduler");
 
 const server = http.createServer(app);
 
+// Same origin policy as the HTTP layer (allow-list + *.vercel.app + localhost)
+// so websockets work from Vercel preview domains too. maxHttpBufferSize bounds
+// any single socket message — the largest legitimate payload is a WebRTC SDP
+// (~20KB); the socket.io default would allow 1MB.
 const io = new Server(server, {
-  cors: { origin: config.corsOrigins, methods: ["GET", "POST"], credentials: true },
+  cors: { origin: corsOriginHandler, methods: ["GET", "POST"], credentials: true },
+  maxHttpBufferSize: 1e5,
 });
 registerStudyRoomHandlers(io);
 

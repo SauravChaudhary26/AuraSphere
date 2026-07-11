@@ -53,4 +53,6 @@ Each is off until its keys are set; the app runs without them.
 
 ## Notes on scale
 
-Study-room state is held in the backend process (fine for one Render instance). To run multiple instances, add the Socket.IO Redis adapter and move room state to Redis — the socket layer is isolated in `backend/sockets/studyRoom.js` to make that swap localized.
+Study-room state is held in the backend process (fine for one Render instance). To run multiple instances, add the Socket.IO Redis adapter and move room state to Redis — the socket layer is isolated in `backend/sockets/studyRoom/` (`roomStore.js` + `timerEngine.js`) to make that swap localized.
+
+**Video/voice (WebRTC):** media flows peer-to-peer — the server only relays signaling over the existing socket, so Render's free tier carries no media traffic. Clients use public Google STUN servers; users behind strict/symmetric NATs (some campus or corporate networks) may fail to connect video until you add a TURN server (e.g. coturn, Twilio NTS, or Metered) to `RTC_CONFIG` in `frontend/src/components/StudyRoom/useWebRTC.js`. The mesh topology is comfortable up to ~8 cameras per room; rooms are capped at 12 participants.
