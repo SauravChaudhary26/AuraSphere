@@ -1,215 +1,150 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useSocket } from '../../contexts/SocketContext';
-import { useTimer } from '../../hooks/useTimer';
-import { minutesToSeconds, getRemainingTime } from '../../utils/timeUtils';
-import JoinRoomForm from './JoinRoomForm';
-import StudyRoomInterface from './StudyRoomInterface';
-import BreakScreen from './BreakScreen';
+import { useState, useEffect, useRef, useCallback } from "react";
+import { LogOut, PartyPopper, RotateCcw } from "lucide-react";
+import { PageHeader, Button, Card } from "../ui";
+import { useSocket } from "../../contexts/SocketContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { handleError, handleSuccess } from "../../utils/ToastMessages";
+import JoinRoomForm from "./JoinRoomForm";
+import StudyRoomInterface from "./StudyRoomInterface";
 
 const StudyRoom = () => {
-  const { socket, connected } = useSocket();
-  const [currentUser, setCurrentUser] = useState(null);
-  const [roomUsers, setRoomUsers] = useState([]);
-  const [gameState, setGameState] = useState('join'); // 'join', 'studying', 'break'
-  const [roomId] = useState('default-room'); // Static for now
-  const [error, setError] = useState('');
-  const [completedDuration, setCompletedDuration] = useState(0);
+  const { connected, connect, disconnect } = useSocket();
+  const { user } = useAuth();
 
-  // Timer management
-  const handleTimeEnd = useCallback(() => {
-    setCompletedDuration(currentUser?.studyDuration || 0);
-    setGameState('break');
-    if (socket) {
-      socket.emit('leave-study-room', roomId);
+  const [phase, setPhase] = useState("join"); // 'join' | 'studying' | 'done'
+  const [socket, setSocket] = useState(null);
+  const [pendingRoom, setPendingRoom] = useState(null);
+  const [studyMinutes, setStudyMinutes] = useState(25);
+  const [roomId, setRoomId] = useState(null);
+  const [endsAt, setEndsAt] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [joining, setJoining] = useState(false);
+
+  const userName = user?.name || "Anonymous";
+  const avatar = (user?.name || "?").charAt(0).toUpperCase();
+
+  const reset = useCallback(() => {
+    setPhase("join");
+    setPendingRoom(null);
+    setSocket(null);
+    setRoomId(null);
+    setEndsAt(null);
+    setUsers([]);
+    setJoining(false);
+  }, []);
+
+  const handleJoin = ({ roomName, studyMinutes: mins }) => {
+    const s = connect();
+    if (!s) {
+      handleError("Please log in to join a study room");
+      return;
     }
-  }, [currentUser, socket, roomId]);
+    setStudyMinutes(mins);
+    setPendingRoom(roomName);
+    setSocket(s);
+    setJoining(true);
+  };
 
-  const { timeLeft, startTimer, resetTimer, stopTimer } = useTimer(
-    currentUser?.studyDuration || 1500,
-    handleTimeEnd
-  );
-
-  // Socket event handlers
+  // Attach listeners + emit the join once we have a socket + a pending room.
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !pendingRoom) return;
 
-    const handleRoomUsersUpdated = (users) => {
-      console.log('Room users updated:', users);
-      // Update time left for other users based on their join time
-      const updatedUsers = users.map(user => ({
-        ...user,
-        timeLeft: getRemainingTime(user.joinedAt, user.studyDuration)
-      }));
-      setRoomUsers(updatedUsers);
+    const onJoined = ({ roomId: joinedRoomId, endsAt: end }) => {
+      setRoomId(joinedRoomId);
+      setEndsAt(Number(end));
+      setPhase("studying");
+      setJoining(false);
+      handleSuccess("You're in — happy studying!");
     };
+    const onUsers = (list) => setUsers(Array.isArray(list) ? list : []);
+    const onEnded = () => setPhase("done");
 
-    const handleStudyTimeEnded = () => {
-      console.log('Study time ended by server');
-      setCompletedDuration(currentUser?.studyDuration || 0);
-      setGameState('break');
-    };
+    socket.on("joined-room-success", onJoined);
+    socket.on("room-users-updated", onUsers);
+    socket.on("study-time-ended", onEnded);
 
-    const handleJoinedRoomSuccess = ({ roomId: joinedRoomId }) => {
-      console.log('Successfully joined room:', joinedRoomId);
-      setError('');
-    };
+    socket.emit("join-study-room", {
+      roomId: pendingRoom,
+      name: userName,
+      avatar,
+      studyMinutes,
+    });
 
-    const handleJoinRoomError = (errorMessage) => {
-      console.error('Failed to join room:', errorMessage);
-      setError(errorMessage || 'Failed to join room');
-      setGameState('join');
-      setCurrentUser(null);
-    };
-
-    const handleUserLeft = ({ socketId, userName }) => {
-      console.log('User left:', userName);
-      setRoomUsers(prev => prev.filter(user => user.socketId !== socketId));
-    };
-
-    // Register socket listeners
-    socket.on('room-users-updated', handleRoomUsersUpdated);
-    socket.on('study-time-ended', handleStudyTimeEnded);
-    socket.on('joined-room-success', handleJoinedRoomSuccess);
-    socket.on('join-room-error', handleJoinRoomError);
-    socket.on('user-left', handleUserLeft);
-
-    // Cleanup
     return () => {
-      socket.off('room-users-updated', handleRoomUsersUpdated);
-      socket.off('study-time-ended', handleStudyTimeEnded);
-      socket.off('joined-room-success', handleJoinedRoomSuccess);
-      socket.off('join-room-error', handleJoinRoomError);
-      socket.off('user-left', handleUserLeft);
+      socket.off("joined-room-success", onJoined);
+      socket.off("room-users-updated", onUsers);
+      socket.off("study-time-ended", onEnded);
     };
-  }, [socket, currentUser]);
+  }, [socket, pendingRoom, userName, avatar, studyMinutes]);
 
-  // Handle connection status changes
-  useEffect(() => {
-    if (!connected && gameState === 'studying') {
-      setError('Connection lost. Trying to reconnect...');
-    } else if (connected && error === 'Connection lost. Trying to reconnect...') {
-      setError('');
-    }
-  }, [connected, gameState, error]);
+  const handleLeave = useCallback(() => {
+    if (socket && roomId) socket.emit("leave-study-room", roomId);
+    disconnect();
+    reset();
+  }, [socket, roomId, disconnect, reset]);
 
-  // Auto-reconnect to room if connection is restored
-  useEffect(() => {
-    if (connected && currentUser && gameState === 'studying') {
-      // Re-join the room after reconnection
-      const rejoinData = {
-        roomId,
-        user: currentUser,
-        studyDuration: Math.ceil(timeLeft / 60) // Convert remaining time to minutes
-      };
-      
-      socket.emit('join-study-room', rejoinData);
-    }
-  }, [connected, socket, currentUser, roomId, gameState, timeLeft]);
-
-  const handleJoinRoom = async (userData) => {
-    if (!socket || !connected) {
-      throw new Error('Not connected to server');
-    }
-
-    try {
-      const user = {
-        ...userData,
-        studyDuration: minutesToSeconds(userData.studyDuration),
-        joinedAt: Date.now()
-      };
-
-      setCurrentUser(user);
-      setGameState('studying');
-      resetTimer(user.studyDuration);
-      startTimer();
-      setError('');
-
-      // Emit join room event
-      socket.emit('join-study-room', {
-        roomId,
-        user,
-        studyDuration: userData.studyDuration
-      });
-
-    } catch (err) {
-      console.error('Error joining room:', err);
-      setError(err.message || 'Failed to join room');
-      setGameState('join');
-      setCurrentUser(null);
-      throw err;
-    }
+  // Best-effort cleanup: leave the room + tear down the socket on unmount.
+  const leaveRef = useRef(() => {});
+  leaveRef.current = () => {
+    if (socket && roomId) socket.emit("leave-study-room", roomId);
+    disconnect();
   };
+  useEffect(() => () => leaveRef.current(), []);
 
-  const handleLeaveRoom = () => {
-    try {
-      if (socket && connected) {
-        socket.emit('leave-study-room', roomId);
-      }
-      
-      // Clean up local state
-      stopTimer();
-      setGameState('join');
-      setCurrentUser(null);
-      setRoomUsers([]);
-      setError('');
-      setCompletedDuration(0);
-    } catch (err) {
-      console.error('Error leaving room:', err);
-      // Still clean up local state even if socket fails
-      setGameState('join');
-      setCurrentUser(null);
-      setRoomUsers([]);
-      setError('');
-    }
+  const backToLobby = () => {
+    disconnect();
+    reset();
   };
-
-  const handleRejoin = () => {
-    setGameState('join');
-    setCurrentUser(null);
-    setRoomUsers([]);
-    setError('');
-    setCompletedDuration(0);
-  };
-
-  // Handle component unmount
-  useEffect(() => {
-    return () => {
-      if (socket && currentUser) {
-        socket.emit('leave-study-room', roomId);
-      }
-    };
-  }, [socket, currentUser, roomId]);
-
-  // Render appropriate screen based on state
-  if (gameState === 'join') {
-    return (
-      <JoinRoomForm 
-        onJoin={handleJoinRoom} 
-        isConnected={connected}
-        error={error}
-      />
-    );
-  }
-
-  if (gameState === 'break') {
-    return (
-      <BreakScreen 
-        onRejoin={handleRejoin}
-        completedDuration={completedDuration}
-        userName={currentUser?.name}
-      />
-    );
-  }
 
   return (
-    <StudyRoomInterface
-      user={currentUser}
-      onLeave={handleLeaveRoom}
-      roomUsers={roomUsers}
-      timeLeft={timeLeft}
-      isConnected={connected}
-      roomId={roomId}
-    />
+    <>
+      <PageHeader
+        eyebrow="Focus"
+        title="Study Room"
+        subtitle="Join a room and lock in alongside other students."
+        actions={
+          phase === "studying" ? (
+            <Button variant="danger" onClick={handleLeave}>
+              <LogOut size={16} /> Leave
+            </Button>
+          ) : null
+        }
+      />
+
+      {phase === "join" && (
+        <JoinRoomForm onJoin={handleJoin} joining={joining} userName={userName} />
+      )}
+
+      {phase === "studying" && endsAt != null && (
+        <StudyRoomInterface
+          roomId={roomId}
+          endsAt={endsAt}
+          studyMinutes={studyMinutes}
+          users={users}
+          connected={connected}
+          mySocketId={socket?.id}
+        />
+      )}
+
+      {phase === "done" && (
+        <div className="mx-auto max-w-md">
+          <Card className="flex flex-col items-center gap-4 p-8 text-center">
+            <span className="grid h-16 w-16 place-items-center rounded-full bg-surface-2 text-primary">
+              <PartyPopper size={30} />
+            </span>
+            <div>
+              <h2 className="text-xl font-bold">Session complete</h2>
+              <p className="mt-1 text-sm text-muted">
+                Nice focus, {userName.split(" ")[0]}. Take a well-earned break.
+              </p>
+            </div>
+            <Button onClick={backToLobby}>
+              <RotateCcw size={16} /> Back to lobby
+            </Button>
+          </Card>
+        </div>
+      )}
+    </>
   );
 };
 

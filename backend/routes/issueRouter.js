@@ -1,14 +1,11 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { createIssue, getAllIssues, getIssue } = require('../controllers/issueController');
+const requireAdmin = require("../middlewares/requireAdmin");
+const { getAllIssues, getIssue } = require("../controllers/issueController");
 
-// POST /api/issues - Create a new issue report
-router.post('/', createIssue);
-
-// GET /api/issues - Get all issues (for admin)
-router.get('/', getAllIssues);
-
-// GET /api/issues/:id - Get a specific issue
-router.get('/:id', getIssue);
+// Admin-only. (Public issue reporting lives in routes/publicRouter.js.)
+// Mounted under the JWT-protected main router, so requireAdmin runs after auth.
+router.get("/", requireAdmin, getAllIssues);
+router.get("/:id", requireAdmin, getIssue);
 
 module.exports = router;

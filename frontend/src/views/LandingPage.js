@@ -1,227 +1,108 @@
-import { useNavigate } from "react-router-dom";
-import "./css/tailwind.css";
+import { Link } from "react-router-dom";
+import {
+  Target, CalendarDays, ClipboardCheck, Timer, Trophy, Swords,
+  Sparkles, ArrowRight, Check,
+} from "lucide-react";
+import Logo from "../components/Logo";
+import AuraRing from "../components/ui/AuraRing";
+import { Button, ThemeToggle } from "../components/ui";
 
-const LandingPage = () => {
-  const handleFeatureClick = (link) => {
-    console.log(`Navigate to: ${link}`);
-    alert(`This would navigate to: ${link}`);
-  };
-  const navigate = useNavigate();
-  const handleNavigatetoLogin = () => navigate("/login");
+const FEATURES = [
+  { icon: Target, title: "Goals that pay off", body: "Set study goals and earn Aura the moment you finish them." },
+  { icon: CalendarDays, title: "Color-coded timetable", body: "Build your weekly schedule from your courses, at a glance." },
+  { icon: ClipboardCheck, title: "Attendance tracking", body: "Log classes and watch your attendance percentage per course." },
+  { icon: Timer, title: "Pomodoro study rooms", body: "Focus alongside other students in shared timed sessions." },
+  { icon: Trophy, title: "Campus leaderboard", body: "See where you rank and climb with every bit of focused work." },
+  { icon: Swords, title: "Challenge friends", body: "Dare a friend to a study goal and earn Aura for finishing." },
+];
 
+export default function LandingPage() {
   return (
-    <div className="min-h-screen flex flex-col text-gray-800 bg-gradient-to-br from-slate-50 to-blue-50">
-      {/* Custom Animations and Styles */}
-      <style>
-        {`
-          @keyframes fadeIn {
-            0% { opacity: 0; }
-            100% { opacity: 1; }
-          }
-          @keyframes fadeUp {
-            0% { opacity: 0; transform: translateY(40px); }
-            100% { opacity: 1; transform: translateY(0); }
-          }
-          @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-          }
-          @keyframes gradient {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-          }
-          @keyframes sparkle {
-            0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.7; }
-            50% { transform: scale(1.2) rotate(180deg); opacity: 1; }
-          }
-          .animate-fadeIn { animation: fadeIn 1.5s ease-out; }
-          .animate-fadeUp { animation: fadeUp 1.2s ease-out; }
-          .animate-float { animation: float 3s ease-in-out infinite; }
-          .animate-gradient { animation: gradient 8s ease infinite; }
-          .animate-sparkle { animation: sparkle 2s ease-in-out infinite; }
-          .hero-gradient {
-            background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #f5576c, #4facfe, #00f2fe);
-            background-size: 400% 400%;
-            animation: gradient 8s ease infinite;
-          }
-          .text-gradient {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-          }
-          .feature-card:hover {
-            transform: translateY(-10px) scale(1.02);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-          }
-        `}
-      </style>
-
-      {/* ✅ Logo */}
-      <div className="absolute top-6 left-8 right-8 flex justify-between items-center z-50">
-        <h1 className="text-3xl font-extrabold bg-clip-text text-transparent bg-white drop-shadow-lg">
-          AURASPHERE
-        </h1>
-        <button 
-          onClick={() => handleNavigatetoLogin()}
-          className="px-6 py-3 bg-white/20 backdrop-blur-sm border border-white/30 rounded-full text-white font-semibold hover:bg-white/30 hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
-        >
-          Login
-        </button>
-      </div>
-
-      {/* ✅ Hero Section */}
-      <header className="h-screen flex flex-col justify-center items-center text-center relative overflow-hidden hero-gradient">
-        {/* Floating Sparkles */}
-        <div className="absolute top-20 left-20 w-4 h-4 bg-white rounded-full animate-sparkle"></div>
-        <div
-          className="absolute top-40 right-32 w-6 h-6 bg-white rounded-full animate-sparkle"
-          style={{ animationDelay: "1s" }}
-        ></div>
-        <div
-          className="absolute bottom-32 left-16 w-3 h-3 bg-white rounded-full animate-sparkle"
-          style={{ animationDelay: "2s" }}
-        ></div>
-
-        {/* Hero Content */}
-        <div className="relative z-10 text-white max-w-4xl px-6">
-          <div className="mb-8 animate-fadeIn">
-            <div className="inline-flex items-center px-4 py-2 bg-white/20 rounded-full backdrop-blur-sm border border-white/30 text-sm font-medium mb-6">
-              ✨ Welcome to the Future of Productivity
-            </div>
+    <div className="min-h-screen bg-ground text-ink">
+      {/* Nav */}
+      <header className="sticky top-0 z-30 border-b border-border bg-ground/80 backdrop-blur">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
+          <Logo size={28} />
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <Link to="/login" className="hidden text-sm font-semibold text-muted hover:text-ink sm:block">Sign in</Link>
+            <Link to="/signup"><Button size="sm">Get started</Button></Link>
           </div>
-
-          <h1 className="text-6xl md:text-7xl font-black mb-8 animate-fadeIn leading-tight">
-            Empower Your
-            <span className="block bg-gradient-to-r from-yellow-200 to-pink-200 bg-clip-text text-transparent">
-              Productivity
-            </span>
-          </h1>
-
-          <p className="text-xl md:text-2xl opacity-95 animate-fadeUp leading-relaxed mb-10 font-light">
-            Manage goals, events, attendance, and virtual classrooms in one
-            <br />
-            <span className="font-medium">beautifully designed platform</span>
-          </p>
-        </div>
-
-        {/* Wave Separator */}
-        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-[0]">
-          <svg
-            className="relative block w-full h-32 transform scale-110"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 1440 320"
-          >
-            <path
-              fill="#fff"
-              d="M0,128L48,154.7C96,181,192,235,288,224C384,213,480,139,576,106.7C672,75,768,85,864,96C960,107,1056,117,1152,144C1248,171,1344,213,1392,234.7L1440,256V320H0Z"
-            ></path>
-          </svg>
         </div>
       </header>
 
-      {/* ✅ Features Section */}
-      <main className="py-24 px-6 max-w-7xl mx-auto bg-gradient-to-b from-white to-slate-50">
-        <section className="text-center mb-20">
-          <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold mb-6 animate-fadeIn">
-            🚀 Powerful Features
-          </div>
-          <h2 className="text-5xl md:text-6xl font-black mb-6 text-gradient animate-fadeUp">
-            Everything You Need
-          </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed animate-fadeUp">
-            Discover tools to stay organized, motivated, and achieve your goals
-            with ease.
+      {/* Hero */}
+      <section className="mx-auto grid max-w-6xl items-center gap-12 px-5 py-16 lg:grid-cols-[1.1fr_.9fr] lg:py-24">
+        <div>
+          <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider"
+            style={{ color: "var(--primary)", background: "color-mix(in srgb, var(--primary) 14%, transparent)" }}>
+            <Sparkles size={13} /> Gamified student productivity
+          </span>
+          <h1 className="mt-5 text-5xl font-extrabold leading-[1.03] sm:text-6xl">Turn focus<br />into aura.</h1>
+          <p className="serif mt-5 max-w-md text-xl italic text-muted">
+            A student platform where goals, classes, and study sessions earn you <span className="text-ink">Aura</span> — and a place on the campus leaderboard.
           </p>
-        </section>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link to="/signup"><Button size="lg">Start earning <ArrowRight size={18} /></Button></Link>
+            <Link to="/login"><Button size="lg" variant="ghost">I have an account</Button></Link>
+          </div>
+          <div className="mt-8 flex flex-wrap gap-6 text-sm text-muted">
+            {["Free for students", "No credit card", "Works on mobile"].map((t) => (
+              <span key={t} className="inline-flex items-center gap-1.5"><Check size={15} className="text-jade" /> {t}</span>
+            ))}
+          </div>
+        </div>
+        <div className="flex justify-center">
+          <div className="card-surface p-8">
+            <AuraRing value={72} size={240} label="Level 7" primary="1,240" sub="340 to level 8" />
+            <div className="mt-6 flex items-center justify-between gap-4 text-sm">
+              <div><div className="mono text-xl font-extrabold">92%</div><div className="text-muted">attendance</div></div>
+              <div><div className="mono text-xl font-extrabold">#7</div><div className="text-muted">on campus</div></div>
+              <div><div className="mono text-xl font-extrabold">5</div><div className="text-muted">day streak</div></div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-        {/* Feature Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {[
-            {
-              title: "Dashboard",
-              desc: "Get a complete overview of your progress with beautiful analytics.",
-              icon: "📊",
-              gradient: "from-blue-500 to-purple-600",
-              bgPattern: "bg-gradient-to-br from-blue-50 to-purple-50",
-            },
-            {
-              title: "Goals Management",
-              desc: "Track and achieve your personal goals effortlessly.",
-              icon: "🎯",
-              gradient: "from-green-500 to-teal-600",
-              bgPattern: "bg-gradient-to-br from-green-50 to-teal-50",
-            },
-            {
-              title: "Events",
-              desc: "Stay updated with upcoming events and activities.",
-              icon: "📅",
-              gradient: "from-orange-500 to-red-600",
-              bgPattern: "bg-gradient-to-br from-orange-50 to-red-50",
-            },
-            {
-              title: "Attendance",
-              desc: "Track your attendance and ensure active participation.",
-              icon: "✅",
-              gradient: "from-emerald-500 to-green-600",
-              bgPattern: "bg-gradient-to-br from-emerald-50 to-green-50",
-            },
-            {
-              title: "Leaderboard",
-              desc: "See how you rank among others and stay motivated.",
-              icon: "🏆",
-              gradient: "from-yellow-500 to-orange-600",
-              bgPattern: "bg-gradient-to-br from-yellow-50 to-orange-50",
-            },
-            {
-              title: "Virtual Classroom",
-              desc: "Join interactive sessions and collaborate in real-time.",
-              icon: "🎥",
-              gradient: "from-indigo-500 to-purple-600",
-              bgPattern: "bg-gradient-to-br from-indigo-50 to-purple-50",
-            },
-          ].map((feature, index) => (
-            <div
-              key={index}
-              onClick={handleNavigatetoLogin}
-              className={`feature-card relative p-8 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:scale-105 animate-fadeUp border border-gray-100 text-center overflow-hidden cursor-pointer ${feature.bgPattern}`}
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              {/* Hover Gradient */}
-              <div
-                className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 hover:opacity-10 transition-opacity duration-500`}
-              ></div>
-
-              {/* Icon */}
-              <div className="text-6xl mb-6 animate-float">{feature.icon}</div>
-              <h3
-                className={`text-2xl font-bold bg-gradient-to-r ${feature.gradient} bg-clip-text text-transparent mb-4`}
-              >
-                {feature.title}
-              </h3>
-              <p className="text-gray-700 leading-relaxed">{feature.desc}</p>
+      {/* Features */}
+      <section className="mx-auto max-w-6xl px-5 py-12">
+        <h2 className="text-center text-3xl font-extrabold">Everything you need to stay on track</h2>
+        <p className="mx-auto mt-2 max-w-lg text-center text-muted">One place for goals, courses, attendance, focus sessions, and a little healthy competition.</p>
+        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {FEATURES.map((f) => (
+            <div key={f.title} className="card-surface p-6">
+              <span className="grid h-11 w-11 place-items-center rounded-xl"
+                style={{ color: "var(--primary)", background: "color-mix(in srgb, var(--primary) 15%, transparent)" }}>
+                <f.icon size={22} />
+              </span>
+              <h3 className="mt-4 text-lg font-bold">{f.title}</h3>
+              <p className="mt-1 text-sm text-muted">{f.body}</p>
             </div>
           ))}
         </div>
-      </main>
+      </section>
 
-      {/* ✅ Footer */}
-      <footer className="bg-gradient-to-r from-gray-900 to-gray-800 text-gray-300 text-center py-12 mt-24">
-        <div className="max-w-4xl mx-auto px-6">
-          <h4 className="text-3xl font-bold text-white mb-2">AURASPHERE</h4>
-          <p className="text-gray-400">
-            Empowering productivity, one goal at a time.
-          </p>
-          <div className="border-t border-gray-700 pt-6 mt-6">
-            <p>
-              &copy; 2024 AURASPHERE. All rights reserved. Made with ❤️ for
-              productivity enthusiasts.
-            </p>
+      {/* CTA */}
+      <section className="mx-auto max-w-6xl px-5 py-16">
+        <div className="card-surface flex flex-col items-center gap-5 p-10 text-center"
+          style={{ background: "linear-gradient(150deg, color-mix(in srgb, var(--primary) 10%, var(--surface)), var(--surface))" }}>
+          <h2 className="text-3xl font-extrabold">Your next study session is worth Aura.</h2>
+          <p className="max-w-md text-muted">Join thousands of students turning everyday focus into momentum.</p>
+          <Link to="/signup"><Button size="lg">Create your free account <ArrowRight size={18} /></Button></Link>
+        </div>
+      </section>
+
+      <footer className="border-t border-border">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-5 py-8 text-sm text-muted sm:flex-row">
+          <Logo size={24} />
+          <div className="flex gap-5">
+            <Link to="/contact" className="hover:text-ink">Contact</Link>
+            <Link to="/report-issue" className="hover:text-ink">Report an issue</Link>
+            <Link to="/login" className="hover:text-ink">Sign in</Link>
           </div>
+          <span>© {new Date().getFullYear()} AuraSphere</span>
         </div>
       </footer>
     </div>
   );
-};
-
-export default LandingPage;
+}

@@ -1,161 +1,130 @@
-import "./css/Dashboard.css";
-import ObjectiveCard from "../components/Objectives/ObjectiveCard";
 import { useState, useEffect, useCallback } from "react";
-import AddObjective from "../components/Objectives/AddObjective";
-import axios from "axios";
-import { handleError } from "../utils/ToastMessages";
-import TypeWritter from "../components/TypeWritter";
 import { useDispatch } from "react-redux";
+import { Plus, Target, Sparkles, Trophy, CalendarClock } from "lucide-react";
+import { PageHeader, Button, Card, StatTile, EmptyState, LoadingScreen } from "../components/ui";
+import AuraRing from "../components/ui/AuraRing";
+import GoalCard from "../components/Objectives/GoalCard";
+import GoalFormModal from "../components/Objectives/GoalFormModal";
+import api from "../lib/http";
+import { useAuth } from "../contexts/AuthContext";
 import { fetchPoints } from "../utils/redux/pointsSlice";
+import { levelFromAura } from "../utils/aura";
+import { handleError, handleSuccess } from "../utils/ToastMessages";
 
-const Dashboard = () => {
-    const token = localStorage.getItem("token");
-	const dispatch = useDispatch();
+export default function Dashboard() {
+  const dispatch = useDispatch();
+  const { user } = useAuth();
+  const [goals, setGoals] = useState([]);
+  const [summary, setSummary] = useState({ total: 0, today: 0, week: 0 });
+  const [rank, setRank] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [adding, setAdding] = useState(false);
 
-    // Opening and closing of Add Objective modal
-    const [openModal, setOpenModal] = useState(false);
-    const handleCloseModal = () => setOpenModal(false);
+  const load = useCallback(async () => {
+    try {
+      const [g, s, lb] = await Promise.allSettled([
+        api.get("/goals"),
+        api.get("/points/summary"),
+        api.get("/leaderboard"),
+      ]);
+      if (g.status === "fulfilled") setGoals(g.value.data);
+      if (s.status === "fulfilled") setSummary(s.value.data);
+      if (lb.status === "fulfilled") setRank(lb.value.data?.me?.rank ?? null);
+    } catch (err) {
+      handleError("Couldn't load your dashboard");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-    const [allGoals, setAllGoals] = useState([]);
+  useEffect(() => { load(); }, [load]);
 
-    // Retrieving all goals of a user
-    const getAllGoals = useCallback(async () => {
-        const url = "/goals";
+  const refreshAura = () => {
+    dispatch(fetchPoints());
+    api.get("/points/summary").then((r) => setSummary(r.data)).catch(() => {});
+  };
 
-        try {
-            const response = await axios.get(url);
+  const addGoal = async (vals) => {
+    try {
+      await api.post("/goals", vals);
+      handleSuccess("Goal added");
+      load();
+    } catch (err) { handleError(err?.response?.data?.message || "Couldn't add goal"); }
+  };
 
-            const allGoals = response.data;
-			console.log(allGoals);
-            setAllGoals(allGoals);
-        } catch (error) {
-            handleError(error);
-        }
-    }, []);
+  const editGoal = async (id, vals) => {
+    try {
+      await api.put(`/goals/${id}`, vals);
+      handleSuccess("Goal updated");
+      load();
+    } catch (err) { handleError("Couldn't update goal"); }
+  };
 
-    useEffect(() => {
-        getAllGoals();
-    }, [getAllGoals]);
+  const completeGoal = async (id) => {
+    setGoals((gs) => gs.filter((g) => g._id !== id));
+    try {
+      const { data } = await api.patch(`/goals/${id}/complete`);
+      if (data.awarded) handleSuccess(`Goal complete! +${data.awarded} Aura`);
+      refreshAura();
+    } catch (err) { handleError("Couldn't complete goal"); load(); }
+  };
 
-    // Deleting a goal
-    const handleDelete = async (goalId) => {
-        const url = `/goals/${goalId}`;
+  const deleteGoal = async (id) => {
+    setGoals((gs) => gs.filter((g) => g._id !== id));
+    try { await api.delete(`/goals/${id}`); } catch (err) { handleError("Couldn't delete goal"); load(); }
+  };
 
-        try {
-            await axios.delete(url);
+  const pinGoal = async (id) => {
+    try { await api.patch("/goals/pin", { goalId: id }); load(); } catch (err) { handleError("Couldn't pin goal"); }
+  };
 
-            // getAllGoals();
-            setAllGoals((prevGoals) =>
-                prevGoals.filter((goal) => goal._id !== goalId)
-            );
-        } catch (error) {
-            handleError(error);
-        }
-    };
+  if (loading) return <LoadingScreen label="Loading your dashboard…" />;
 
-    // Submiting a goal
-    const handleSubmit = async (formVals) => {
-        const url = "/goals";
+  const { level, pct, toNext } = levelFromAura(summary.total);
+  const firstName = (user?.name || "there").split(" ")[0];
 
-        try {
-            const response = await axios.post(url, formVals);
+  return (
+    <>
+      <PageHeader
+        eyebrow="Dashboard"
+        title={`Welcome back, ${firstName}`}
+        subtitle="Here's your focus at a glance."
+        actions={<Button onClick={() => setAdding(true)}><Plus size={17} /> New goal</Button>}
+      />
 
-            if (response.status === 200 || response.status === 201) {
-                console.log("Objective added successfully!");
-            } else {
-                console.log("An error occurred while adding the objective.");
-            }
-        } catch (error) {
-            console.log("Failed to add objective. Please try again.", error);
-        }
+      <div className="grid gap-5 lg:grid-cols-[260px_1fr]">
+        <Card className="flex flex-col items-center justify-center">
+          <AuraRing value={pct} size={200} label={`Level ${level}`} primary={Number(summary.total).toLocaleString()} sub={`${toNext} to level ${level + 1}`} />
+          <div className="mt-4 text-sm text-muted">Total Aura</div>
+        </Card>
 
-        getAllGoals();
-    };
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-2">
+          <StatTile icon={<Sparkles size={14} />} label="Earned today" value={`+${summary.today}`} tone="gold" delta="this session counts" deltaTone="up" />
+          <StatTile icon={<Target size={14} />} label="Active goals" value={goals.length} tone="jade" />
+          <StatTile icon={<Trophy size={14} />} label="Campus rank" value={rank ? `#${rank}` : "—"} tone="warning" />
+          <StatTile icon={<CalendarClock size={14} />} label="This week" value={`+${summary.week}`} tone="jade" />
+        </div>
+      </div>
 
-    // Completing a goal
-    const handleComplete = async (_id) => {
-        const url = `/goals/complete/${_id}`;
+      <div className="mt-8">
+        <h2 className="mb-4 text-lg font-bold">Active goals</h2>
+        {goals.length === 0 ? (
+          <EmptyState
+            icon={<Target size={40} />}
+            title="No goals yet"
+            subtitle="Set your first goal and start earning Aura for finishing it."
+            action={<Button onClick={() => setAdding(true)}><Plus size={16} /> Add a goal</Button>}
+          />
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {goals.map((goal) => (
+              <GoalCard key={goal._id} goal={goal} onComplete={completeGoal} onDelete={deleteGoal} onPin={pinGoal} onEdit={editGoal} />
+            ))}
+          </div>
+        )}
+      </div>
 
-        try {
-            const response = await axios.get(url);
-            if (response.status === 200) {
-                console.log("Objective completed successfully!");
-            } else {
-                console.log("An error occurred while completing the objective.");
-            }
-
-			dispatch(fetchPoints());
-
-            setAllGoals((prevGoals) =>
-                prevGoals.filter((goal) => goal._id !== _id)
-            );
-        } catch (error) {
-            console.log("Failed to complete objective. Please try again.", error);
-        }
-    };
-
-    // Pinning and unpinning a goal
-    const handlePin = async (_id) => {
-        const url = "/goals/pin";
-
-        try {
-            const response = await axios.patch(
-                url,
-                {
-                    goalId: _id,
-                }
-            );
-
-            console.log(response);
-            getAllGoals();
-            // setAllGoals((allGoals) =>
-            //    allGoals.map((goal) =>
-            //       goal._id === _id ? { ...goal, isPinned: !goal.isPinned } : goal
-            //    )
-            // );
-        } catch (error) {
-            console.log("error while updating goal ", error);
-        }
-    };
-
-    return (
-        <>
-            <div className="card-container">
-                {allGoals.length > 0 ? (
-                    allGoals.map((goal, index) => (
-                        <ObjectiveCard
-                            key={index}
-                            handleDelete={handleDelete}
-                            handleComplete={handleComplete}
-                            _id={goal._id}
-                            title={goal.title}
-                            targetDate={goal.targetDate}
-                            description={goal.description}
-                            isPinned={goal.isPinned}
-                            getAllGoals={getAllGoals}
-                            handlePin={handlePin}
-                        />
-                    ))
-                ) : (
-                    <TypeWritter />
-                )}
-            </div>
-
-            <button
-                className="floating-button"
-                onClick={() => setOpenModal(true)}
-            >
-                +
-            </button>
-
-            {openModal && (
-                <AddObjective
-                    handleCloseModal={handleCloseModal}
-                    handleSubmit={handleSubmit}
-                />
-            )}
-        </>
-    );
-};
-
-export default Dashboard;
+      {adding && <GoalFormModal open={adding} onClose={() => setAdding(false)} onSubmit={addGoal} />}
+    </>
+  );
+}

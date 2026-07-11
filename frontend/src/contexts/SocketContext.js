@@ -1,55 +1,51 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-import io from 'socket.io-client';
+import { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
+import io from "socket.io-client";
+import { API_BASE, getToken } from "../lib/http";
 
-const SocketContext = createContext();
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || API_BASE;
+
+const SocketContext = createContext(null);
 
 export const useSocket = () => {
-  const context = useContext(SocketContext);
-  if (!context) {
-    throw new Error('useSocket must be used within a SocketProvider');
-  }
-  return context;
+  const ctx = useContext(SocketContext);
+  if (!ctx) throw new Error("useSocket must be used within a SocketProvider");
+  return ctx;
 };
 
 export const SocketProvider = ({ children }) => {
-  const [socket, setSocket] = useState(null);
   const [connected, setConnected] = useState(false);
+  const socketRef = useRef(null);
 
-  useEffect(() => {
-    const newSocket = io("https://aurasphere-rehd.onrender.com", {
-      transports: ['websocket', 'polling'],
+  // Lazily connect with the current auth token (the server requires it).
+  const connect = useCallback(() => {
+    if (socketRef.current) return socketRef.current;
+    const token = getToken();
+    if (!token) return null;
+
+    const socket = io(SOCKET_URL, {
+      transports: ["websocket", "polling"],
       timeout: 20000,
+      auth: { token },
     });
-
-    newSocket.on('connect', () => {
-      console.log('Connected to server:', newSocket.id);
-      setConnected(true);
-    });
-
-    newSocket.on('disconnect', () => {
-      console.log('Disconnected from server');
-      setConnected(false);
-    });
-
-    newSocket.on('connect_error', (error) => {
-      console.error('Socket connection error:', error);
-      setConnected(false);
-    });
-
-    setSocket(newSocket);
-
-    return () => {
-      newSocket.close();
-    };
+    socket.on("connect", () => setConnected(true));
+    socket.on("disconnect", () => setConnected(false));
+    socket.on("connect_error", () => setConnected(false));
+    socketRef.current = socket;
+    return socket;
   }, []);
 
-  const value = {
-    socket,
-    connected
-  };
+  const disconnect = useCallback(() => {
+    if (socketRef.current) {
+      socketRef.current.close();
+      socketRef.current = null;
+      setConnected(false);
+    }
+  }, []);
+
+  useEffect(() => () => disconnect(), [disconnect]);
 
   return (
-    <SocketContext.Provider value={value}>
+    <SocketContext.Provider value={{ socket: socketRef.current, connected, connect, disconnect }}>
       {children}
     </SocketContext.Provider>
   );

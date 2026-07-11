@@ -1,101 +1,147 @@
-import React, { useEffect, useState } from "react";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Paper from "@mui/material/Paper";
-import axios from "axios";
-import { Typography } from "@mui/material";
-import "./css/Leaderboard.css";
+import { useState, useEffect, useCallback } from "react";
+import { Trophy, Crown } from "lucide-react";
+import {
+  PageHeader,
+  Card,
+  Avatar,
+  Badge,
+  LoadingScreen,
+  EmptyState,
+  cx,
+} from "../components/ui";
+import api from "../lib/http";
+import { handleError } from "../utils/ToastMessages";
 
-const Leaderboard = () => {
-  const [userData, setUserData] = useState([]); // State to store fetched data
-  const [error, setError] = useState(null); // State to handle errors
+const PERIODS = [
+  { key: "all", label: "All-time" },
+  { key: "week", label: "This week" },
+  { key: "day", label: "Today" },
+];
 
-  const fetchData = async () => {
+const MEDALS = { 1: "🥇", 2: "🥈", 3: "🥉" };
+
+function RankBadge({ rank }) {
+  if (MEDALS[rank]) {
+    return (
+      <span className="grid h-9 w-9 place-items-center text-xl leading-none" aria-label={`Rank ${rank}`}>
+        {MEDALS[rank]}
+      </span>
+    );
+  }
+  return (
+    <span className="mono grid h-9 w-9 place-items-center text-sm font-bold text-muted" aria-label={`Rank ${rank}`}>
+      {rank}
+    </span>
+  );
+}
+
+export default function Leaderboard() {
+  const [period, setPeriod] = useState("all");
+  const [top, setTop] = useState([]);
+  const [me, setMe] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const myId = typeof localStorage !== "undefined" ? localStorage.getItem("userId") : null;
+
+  const load = useCallback(async (p) => {
+    setLoading(true);
     try {
-      const response = await axios.get('/leaderboard');
-
-      const { message, success, userData } = response.data;
-      if (success) {
-        setUserData(userData); // Update state with fetched data
-      } else {
-        console.error("Failed to fetch leaderboard:", message);
-        setError(message);
-      }
-    } catch (error) {
-      console.error("Error fetching leaderboard data:", error);
-      setError(error.message);
+      const { data } = await api.get("/leaderboard", { params: { period: p } });
+      setTop(Array.isArray(data?.top) ? data.top : []);
+      setMe(data?.me ?? null);
+    } catch (err) {
+      handleError("Couldn't load the leaderboard");
+      setTop([]);
+      setMe(null);
+    } finally {
+      setLoading(false);
     }
-  };
-
-  // Useeffect to call for the leaderboard information
-  useEffect(() => {
-    fetchData();
   }, []);
 
-  if (error) {
-    return <div>Error: {error}</div>; // Render error message if fetch fails
-  }
+  useEffect(() => { load(period); }, [load, period]);
 
   return (
-    <div className="leaderboard-container">
-      <TableContainer
-        component={Paper}
-        className="table-container"
-        style={{ width: "50%" }}
-        sx={{
-          boxShadow: "0 8px 16px rgba(0, 0, 0, 0.2)", // Enhanced shadow
-          borderRadius: "16px", // Rounded corners
-          border: "1px solid rgba(0, 0, 0, 0.1)", // Light border for emphasis
-          background: "linear-gradient(to bottom, #ffffff, #f9f9f9)", // Subtle gradient
-        }}
-      >
-        <Table aria-label="leaderboard table">
-          <TableHead>
-            <TableRow className="table-head-row">
-              <TableCell align="center" className="table-header">
-                <Typography sx={{ fontWeight: "bold", fontSize: "1.2rem" }}>
-                  Rank
-                </Typography>
-              </TableCell>
-              <TableCell align="center" className="table-header">
-                <Typography sx={{ fontWeight: "bold", fontSize: "1.2rem" }}>
-                  Name
-                </Typography>
-              </TableCell>
-              <TableCell align="center" className="table-header">
-                <Typography sx={{ fontWeight: "bold", fontSize: "1.2rem" }}>
-                  Aura Points
-                </Typography>
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {userData.map((row, index) => (
-              <TableRow
-                key={index} // Use index if rank is not unique
-                className="table-row"
-                sx={{ height: 60 }}
-              >
-                <TableCell align="center" className="table-cell">
-                  {index + 1}
-                </TableCell>
-                <TableCell align="center" className="table-cell">
-                  {row.name}
-                </TableCell>
-                <TableCell align="center" className="table-cell">
-                  {row.aura}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </div>
-  );
-};
+    <>
+      <PageHeader
+        eyebrow="Rankings"
+        title="Leaderboard"
+        subtitle="See how your Aura stacks up across campus."
+      />
 
-export default Leaderboard;
+      <div className="mb-6 inline-flex flex-wrap gap-1 rounded-[13px] border border-border bg-surface p-1" role="tablist" aria-label="Leaderboard period">
+        {PERIODS.map((p) => (
+          <button
+            key={p.key}
+            role="tab"
+            aria-selected={period === p.key}
+            onClick={() => setPeriod(p.key)}
+            className={cx(
+              "rounded-[9px] px-4 py-2 text-sm font-semibold transition",
+              period === p.key ? "bg-primary text-on-primary shadow-card" : "text-muted hover:text-ink"
+            )}
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
+
+      {me && (
+        <Card className="mb-6 flex items-center gap-4 border-primary/40" style={{ borderColor: "color-mix(in srgb, var(--primary) 45%, var(--border))" }}>
+          <div className="grid h-12 w-12 place-items-center rounded-xl bg-surface-2 text-primary">
+            <Crown size={22} />
+          </div>
+          <Avatar name={me.name} src={me.avatar} size={44} />
+          <div className="min-w-0 flex-1">
+            <div className="text-xs font-bold uppercase tracking-wide text-muted">Your rank</div>
+            <div className="truncate text-lg font-bold">{me.name || "You"}</div>
+          </div>
+          <div className="text-right">
+            <div className="mono text-2xl font-extrabold leading-none text-ink">
+              {me.rank != null ? `#${me.rank}` : "—"}
+            </div>
+            <div className="mono mt-1 text-sm font-semibold text-primary">
+              {Number(me.aura || 0).toLocaleString()} Aura
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {loading ? (
+        <LoadingScreen label="Loading the leaderboard…" />
+      ) : top.length === 0 ? (
+        <EmptyState
+          icon={<Trophy size={40} />}
+          title="No rankings yet"
+          subtitle="Earn Aura by completing goals and study sessions to climb the board."
+        />
+      ) : (
+        <Card className="p-0">
+          <ul className="divide-y divide-border">
+            {top.map((row) => {
+              const isMe = myId != null && String(row.id) === String(myId);
+              return (
+                <li
+                  key={row.id ?? row.rank}
+                  className={cx(
+                    "flex items-center gap-4 px-4 py-3 sm:px-5",
+                    isMe && "bg-surface-2"
+                  )}
+                >
+                  <RankBadge rank={row.rank} />
+                  <Avatar name={row.name} src={row.avatar} size={40} />
+                  <div className="flex min-w-0 flex-1 items-center gap-2">
+                    <span className="truncate font-semibold text-ink">{row.name}</span>
+                    {isMe && <Badge variant="gold">You</Badge>}
+                  </div>
+                  <span className="mono shrink-0 text-[15px] font-bold text-primary">
+                    {Number(row.aura || 0).toLocaleString()}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </Card>
+      )}
+    </>
+  );
+}

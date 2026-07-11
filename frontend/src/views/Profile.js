@@ -1,129 +1,274 @@
-import React, { useEffect } from "react";
-import "./css/tailwind.css";
+import { useState, useEffect, useCallback } from "react";
+import { User, Mail, Lock, Save, BellRing, Sparkles } from "lucide-react";
+import {
+  PageHeader,
+  Button,
+  Card,
+  Badge,
+  Field,
+  Input,
+  Avatar,
+  LoadingScreen,
+  cx,
+} from "../components/ui";
+import AuraRing from "../components/ui/AuraRing";
+import api from "../lib/http";
+import { useAuth } from "../contexts/AuthContext";
+import { levelFromAura } from "../utils/aura";
+import { handleError, handleSuccess } from "../utils/ToastMessages";
 
-const Profile = () => {
-   useEffect(() => {
-      // Toggle dark mode based on system preference
-      if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-         document.documentElement.classList.add("dark");
+export default function Profile() {
+  const { user, refresh } = useAuth();
+  const [loading, setLoading] = useState(!user);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    currentPassword: "",
+    password: "",
+    notifyByEmail: false,
+  });
+
+  // Seed the form from a user object.
+  const hydrateForm = useCallback((u) => {
+    setForm({
+      name: u?.name || "",
+      email: u?.email || "",
+      currentPassword: "",
+      password: "",
+      notifyByEmail: !!u?.notifyByEmail,
+    });
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    if (user) {
+      hydrateForm(user);
+      setLoading(false);
+      return;
+    }
+    (async () => {
+      try {
+        const { data } = await api.get("/auth/me");
+        if (active) hydrateForm(data.user);
+      } catch (err) {
+        handleError("Couldn't load your profile");
+      } finally {
+        if (active) setLoading(false);
       }
-   }, []);
+    })();
+    return () => {
+      active = false;
+    };
+  }, [user, hydrateForm]);
 
-   const handleMouseOver = (event) => {
-      event.target.classList.remove("bg-indigo-100", "text-indigo-800");
-      event.target.classList.add("bg-blue-900", "text-white");
-   };
+  const set = (key) => (e) =>
+    setForm((f) => ({ ...f, [key]: e.target.value }));
 
-   const handleMouseOut = (event) => {
-      event.target.classList.remove("bg-blue-900", "text-white");
-      event.target.classList.add("bg-indigo-100", "text-indigo-800");
-   };
+  const save = async (e) => {
+    e.preventDefault();
+    if (form.password && !form.currentPassword) {
+      handleError("Enter your current password to set a new one");
+      return;
+    }
+    setSaving(true);
+    try {
+      const payload = {
+        name: form.name.trim(),
+        email: form.email.trim(),
+        notifyByEmail: form.notifyByEmail,
+      };
+      if (form.password) {
+        payload.password = form.password;
+        payload.currentPassword = form.currentPassword;
+      }
+      await api.put("/auth/profile", payload);
+      handleSuccess("Profile updated");
+      await refresh();
+      setForm((f) => ({ ...f, currentPassword: "", password: "" }));
+    } catch (err) {
+      const status = err?.response?.status;
+      const msg =
+        err?.response?.data?.message ||
+        (status === 409
+          ? "That email is already in use"
+          : status === 400
+          ? "Current password is incorrect"
+          : "Couldn't update your profile");
+      handleError(msg);
+    } finally {
+      setSaving(false);
+    }
+  };
 
-   return (
-      <div className="bg-[rgb(42,53,150)] min-h-screen flex items-center justify-center p-4">
-         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full p-8 transition-all duration-300 animate-fade-in">
-            <div className="flex flex-col md:flex-row">
-               <div className="md:w-1/3 text-center mb-8 md:mb-0">
-                  <img
-                     src="https://i.pravatar.cc/300"
-                     alt="Profile"
-                     className="rounded-full w-48 h-48 mx-auto mb-4 border-4 border-indigo-800 dark:border-blue-900 transition-transform duration-300 hover:scale-105"
+  if (loading) return <LoadingScreen label="Loading your profile…" />;
+
+  const aura = Number(user?.aura || 0);
+  const { level, pct, toNext } = levelFromAura(aura);
+
+  return (
+    <>
+      <PageHeader
+        eyebrow="Account"
+        title="Profile"
+        subtitle="Manage your identity, security, and notifications."
+      />
+
+      <div className="grid gap-5 lg:grid-cols-[300px_1fr]">
+        {/* Identity card */}
+        <Card className="flex flex-col items-center text-center">
+          <Avatar name={form.name} src={user?.avatar} size={96} />
+          <h2 className="mt-4 text-xl font-bold">{form.name || "Your name"}</h2>
+          <p className="mt-1 text-sm text-muted">{form.email}</p>
+          {user?.role && (
+            <Badge variant="neutral" className="mt-3 capitalize">
+              {user.role}
+            </Badge>
+          )}
+
+          <div className="mt-6">
+            <AuraRing
+              value={pct}
+              size={168}
+              thickness={18}
+              label={`Level ${level}`}
+              primary={aura.toLocaleString()}
+              sub={`${toNext} to level ${level + 1}`}
+            />
+          </div>
+          <div className="mt-3 flex items-center gap-1.5 text-sm text-muted">
+            <Sparkles size={14} className="text-primary" /> Total Aura
+          </div>
+        </Card>
+
+        {/* Edit form */}
+        <form onSubmit={save} className="flex flex-col gap-5">
+          <Card>
+            <h3 className="mb-4 text-lg font-bold">Edit profile</h3>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Name">
+                <div className="relative">
+                  <User
+                    size={16}
+                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-faint"
                   />
-                  <h1 className="text-2xl font-bold text-indigo-800 dark:text-white mb-2">
-                     John Doe
-                  </h1>
-                  <p className="text-gray-600 dark:text-gray-300">
-                     Software Developer
-                  </p>
-                  <button className="mt-4 bg-indigo-800 text-white px-4 py-2 rounded-lg hover:bg-blue-900 transition-colors duration-300">
-                     Edit Profile
-                  </button>
-               </div>
-               <div className="md:w-2/3 md:pl-8">
-                  <h2 className="text-xl font-semibold text-indigo-800 dark:text-white mb-4">
-                     About Me
-                  </h2>
-                  <p className="text-gray-700 dark:text-gray-300 mb-6">
-                     Passionate software developer with 5 years of experience in
-                     web technologies. I love creating user-friendly
-                     applications and solving complex problems.
-                  </p>
-                  <h2 className="text-xl font-semibold text-indigo-800 dark:text-white mb-4">
-                     Skills
-                  </h2>
-                  <div className="flex flex-wrap gap-2 mb-6">
-                     {["JavaScript", "React", "Node.js", "Python", "SQL"].map(
-                        (skill) => (
-                           <span
-                              key={skill}
-                              className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm"
-                              onMouseOver={handleMouseOver}
-                              onMouseOut={handleMouseOut}
-                           >
-                              {skill}
-                           </span>
-                        )
-                     )}
-                  </div>
-                  <h2 className="text-xl font-semibold text-indigo-800 dark:text-white mb-4">
-                     Contact Information
-                  </h2>
-                  <ul className="space-y-2 text-gray-700 dark:text-gray-300">
-                     <li className="flex items-center">
-                        <svg
-                           xmlns="http://www.w3.org/2000/svg"
-                           className="h-5 w-5 mr-2 text-indigo-800 dark:text-blue-900"
-                           viewBox="0 0 20 20"
-                           fill="currentColor"
-                        >
-                           <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                           <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                        </svg>
-                        john.doe@example.com
-                     </li>
-                     <li className="flex items-center">
-                        <svg
-                           xmlns="http://www.w3.org/2000/svg"
-                           className="h-5 w-5 mr-2 text-indigo-800 dark:text-blue-900"
-                           viewBox="0 0 20 20"
-                           fill="currentColor"
-                        >
-                           <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-                        </svg>
-                        +1 (555) 123-4567
-                     </li>
-                     <li className="flex items-center">
-                        <svg
-                           xmlns="http://www.w3.org/2000/svg"
-                           className="h-5 w-5 mr-2 text-indigo-800 dark:text-blue-900"
-                           viewBox="0 0 20 20"
-                           fill="currentColor"
-                        >
-                           <path
-                              fillRule="evenodd"
-                              d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
-                              clipRule="evenodd"
-                           />
-                        </svg>
-                        San Francisco, CA
-                     </li>
-                  </ul>
-               </div>
+                  <Input
+                    value={form.name}
+                    onChange={set("name")}
+                    placeholder="Your name"
+                    autoComplete="name"
+                    className="pl-9"
+                  />
+                </div>
+              </Field>
+              <Field label="Email">
+                <div className="relative">
+                  <Mail
+                    size={16}
+                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-faint"
+                  />
+                  <Input
+                    type="email"
+                    value={form.email}
+                    onChange={set("email")}
+                    placeholder="you@example.com"
+                    autoComplete="email"
+                    className="pl-9"
+                  />
+                </div>
+              </Field>
             </div>
-         </div>
-         <style>
-            {`
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-          .animate-fade-in {
-            animation: fadeIn 0.5s ease-out forwards;
-          }
-        `}
-         </style>
-      </div>
-   );
-};
+          </Card>
 
-export default Profile;
+          <Card>
+            <h3 className="mb-1 text-lg font-bold">Change password</h3>
+            <p className="mb-4 text-sm text-muted">
+              Leave these blank to keep your current password.
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Current password">
+                <div className="relative">
+                  <Lock
+                    size={16}
+                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-faint"
+                  />
+                  <Input
+                    type="password"
+                    value={form.currentPassword}
+                    onChange={set("currentPassword")}
+                    placeholder="••••••••"
+                    autoComplete="current-password"
+                    className="pl-9"
+                  />
+                </div>
+              </Field>
+              <Field label="New password">
+                <div className="relative">
+                  <Lock
+                    size={16}
+                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-faint"
+                  />
+                  <Input
+                    type="password"
+                    value={form.password}
+                    onChange={set("password")}
+                    placeholder="••••••••"
+                    autoComplete="new-password"
+                    className="pl-9"
+                  />
+                </div>
+              </Field>
+            </div>
+          </Card>
+
+          <Card>
+            <h3 className="mb-4 text-lg font-bold">Notifications</h3>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={form.notifyByEmail}
+              aria-label="Toggle email deadline reminders"
+              onClick={() =>
+                setForm((f) => ({ ...f, notifyByEmail: !f.notifyByEmail }))
+              }
+              className="flex w-full items-center justify-between gap-4 rounded-xl border border-border bg-surface-2 p-4 text-left transition hover:border-primary"
+            >
+              <span className="flex items-start gap-3">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-surface text-primary">
+                  <BellRing size={18} />
+                </span>
+                <span>
+                  <span className="block font-semibold text-ink">
+                    Email deadline reminders
+                  </span>
+                  <span className="mt-0.5 block text-sm text-muted">
+                    Get an email before your goals and events are due.
+                  </span>
+                </span>
+              </span>
+              <span
+                className={cx(
+                  "relative h-6 w-11 shrink-0 rounded-full transition-colors",
+                  form.notifyByEmail ? "bg-primary" : "bg-border"
+                )}
+              >
+                <span
+                  className={cx(
+                    "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-card transition-transform",
+                    form.notifyByEmail ? "translate-x-[22px]" : "translate-x-0.5"
+                  )}
+                />
+              </span>
+            </button>
+          </Card>
+
+          <div className="flex justify-end">
+            <Button type="submit" loading={saving}>
+              <Save size={17} /> Save changes
+            </Button>
+          </div>
+        </form>
+      </div>
+    </>
+  );
+}

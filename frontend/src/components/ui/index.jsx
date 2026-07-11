@@ -1,0 +1,255 @@
+import { useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
+import { X, Loader2, Sun, Moon, Inbox } from "lucide-react";
+
+/* ----------------------------------------------------------------- utilities */
+export const cx = (...c) => c.filter(Boolean).join(" ");
+
+/* -------------------------------------------------------------------- Button */
+const BTN_VARIANTS = {
+  primary: "bg-primary text-on-primary hover:brightness-110 shadow-card",
+  jade: "bg-jade text-white hover:brightness-110",
+  ghost: "bg-surface text-ink border border-border hover:border-primary",
+  subtle: "bg-surface-2 text-ink hover:bg-border",
+  danger: "bg-danger text-white hover:brightness-110",
+};
+const BTN_SIZES = { sm: "px-3 py-1.5 text-sm", md: "px-4 py-2.5 text-[15px]", lg: "px-5 py-3 text-base" };
+
+export function Button({
+  variant = "primary",
+  size = "md",
+  loading = false,
+  disabled,
+  className,
+  children,
+  ...props
+}) {
+  return (
+    <button
+      disabled={disabled || loading}
+      className={cx(
+        "inline-flex items-center justify-center gap-2 rounded-[11px] font-semibold transition",
+        "disabled:opacity-55 disabled:cursor-not-allowed active:translate-y-px",
+        BTN_VARIANTS[variant],
+        BTN_SIZES[size],
+        className
+      )}
+      {...props}
+    >
+      {loading && <Loader2 size={16} className="animate-spin" />}
+      {children}
+    </button>
+  );
+}
+
+/* ---------------------------------------------------------------------- Card */
+export function Card({ className, children, as: Tag = "div", ...props }) {
+  return (
+    <Tag className={cx("card-surface p-5", className)} {...props}>
+      {children}
+    </Tag>
+  );
+}
+
+/* --------------------------------------------------------------------- Badge */
+const BADGE_COLOR = {
+  gold: "var(--primary)",
+  jade: "var(--jade)",
+  success: "var(--success)",
+  warning: "var(--warning)",
+  danger: "var(--danger)",
+  neutral: "var(--muted)",
+};
+export function Badge({ variant = "neutral", dot = false, className, children }) {
+  const color = BADGE_COLOR[variant] || BADGE_COLOR.neutral;
+  return (
+    <span
+      className={cx("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold", className)}
+      style={{ color, background: `color-mix(in srgb, ${color} 15%, transparent)` }}
+    >
+      {dot && <span className="h-1.5 w-1.5 rounded-full" style={{ background: color }} />}
+      {children}
+    </span>
+  );
+}
+
+/* --------------------------------------------------------------------- Field */
+export function Field({ label, error, hint, required, children }) {
+  return (
+    <label className="block">
+      {label && (
+        <span className="mb-1.5 flex items-center gap-1 text-[13px] font-semibold text-muted">
+          {label} {required && <span className="text-danger">*</span>}
+        </span>
+      )}
+      {children}
+      {error ? (
+        <span className="mt-1 block text-xs text-danger">{error}</span>
+      ) : hint ? (
+        <span className="mt-1 block text-xs text-faint">{hint}</span>
+      ) : null}
+    </label>
+  );
+}
+
+const inputBase =
+  "w-full rounded-[11px] border border-border bg-surface-2 px-3.5 py-2.5 text-[15px] text-ink " +
+  "placeholder:text-faint outline-none transition focus:border-primary";
+
+export const Input = ({ className, ...p }) => <input className={cx(inputBase, className)} {...p} />;
+export const Textarea = ({ className, ...p }) => (
+  <textarea className={cx(inputBase, "min-h-[96px] resize-y", className)} {...p} />
+);
+export const Select = ({ className, children, ...p }) => (
+  <select className={cx(inputBase, "appearance-none", className)} {...p}>
+    {children}
+  </select>
+);
+
+/* ------------------------------------------------------------------ StatTile */
+export function StatTile({ icon, label, value, delta, deltaTone = "muted", tone = "primary" }) {
+  const toneColor = BADGE_COLOR[tone] || BADGE_COLOR.gold;
+  return (
+    <Card className="p-4">
+      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-muted">
+        {icon && (
+          <span
+            className="grid h-6 w-6 place-items-center rounded-lg text-[13px]"
+            style={{ color: toneColor, background: `color-mix(in srgb, ${toneColor} 16%, transparent)` }}
+          >
+            {icon}
+          </span>
+        )}
+        {label}
+      </div>
+      <div className="mono mt-2 text-[28px] font-extrabold leading-none">{value}</div>
+      {delta != null && (
+        <div
+          className="mt-1 text-[13px]"
+          style={{ color: deltaTone === "up" ? "var(--success)" : deltaTone === "down" ? "var(--danger)" : "var(--muted)" }}
+        >
+          {delta}
+        </div>
+      )}
+    </Card>
+  );
+}
+
+/* --------------------------------------------------------------- ProgressBar */
+export function ProgressBar({ value = 0, tone = "var(--primary)", className }) {
+  return (
+    <div className={cx("h-2 w-full overflow-hidden rounded-full bg-surface-2", className)}>
+      <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.max(0, Math.min(100, value))}%`, background: tone }} />
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------- Avatar */
+export function Avatar({ name = "", src, size = 36, className }) {
+  const initials = name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase() || "?";
+  return src ? (
+    <img src={src} alt={name} width={size} height={size} className={cx("rounded-full object-cover", className)} style={{ width: size, height: size }} />
+  ) : (
+    <span
+      className={cx("grid place-items-center rounded-full border border-border bg-surface-2 font-bold text-muted", className)}
+      style={{ width: size, height: size, fontSize: size * 0.38 }}
+    >
+      {initials}
+    </span>
+  );
+}
+
+/* ---------------------------------------------------------------- PageHeader */
+export function PageHeader({ eyebrow, title, subtitle, actions }) {
+  return (
+    <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+      <div>
+        {eyebrow && <div className="text-xs font-bold uppercase tracking-[0.16em] text-primary">{eyebrow}</div>}
+        <h1 className="mt-1 text-[26px] font-extrabold">{title}</h1>
+        {subtitle && <p className="mt-1 text-muted">{subtitle}</p>}
+      </div>
+      {actions && <div className="flex items-center gap-2">{actions}</div>}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------- feedback components */
+export function Spinner({ size = 24, className }) {
+  return <Loader2 size={size} className={cx("animate-spin text-primary", className)} />;
+}
+
+export function LoadingScreen({ label = "Loading…" }) {
+  return (
+    <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 text-muted">
+      <Spinner size={30} />
+      <span className="text-sm">{label}</span>
+    </div>
+  );
+}
+
+export function EmptyState({ icon = <Inbox size={40} />, title, subtitle, action }) {
+  return (
+    <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border py-14 text-center">
+      <div className="mb-3 text-faint">{icon}</div>
+      <div className="text-lg font-semibold">{title}</div>
+      {subtitle && <div className="mt-1 max-w-sm text-sm text-muted">{subtitle}</div>}
+      {action && <div className="mt-4">{action}</div>}
+    </div>
+  );
+}
+
+/* --------------------------------------------------------------------- Modal */
+export function Modal({ open, onClose, title, children, footer, size = "md" }) {
+  const onKey = useCallback((e) => e.key === "Escape" && onClose?.(), [onClose]);
+  useEffect(() => {
+    if (!open) return;
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [open, onKey]);
+
+  if (!open) return null;
+  const maxW = size === "lg" ? "max-w-2xl" : size === "sm" ? "max-w-sm" : "max-w-lg";
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+      onMouseDown={(e) => e.target === e.currentTarget && onClose?.()}
+    >
+      <div role="dialog" aria-modal="true" aria-label={title} className={cx("w-full card-surface p-6", maxW)}>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-bold">{title}</h2>
+          <button onClick={onClose} aria-label="Close" className="rounded-lg p-1 text-muted hover:bg-surface-2 hover:text-ink">
+            <X size={20} />
+          </button>
+        </div>
+        <div>{children}</div>
+        {footer && <div className="mt-6 flex justify-end gap-3">{footer}</div>}
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+/* --------------------------------------------------------------- ThemeToggle */
+export function ThemeToggle({ className }) {
+  const toggle = () => {
+    const root = document.documentElement;
+    const cur = root.getAttribute("data-theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    const next = cur === "dark" ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    try { localStorage.setItem("theme", next); } catch {}
+  };
+  const isDark = typeof document !== "undefined" && document.documentElement.getAttribute("data-theme") === "dark";
+  return (
+    <button
+      onClick={toggle}
+      aria-label="Toggle color theme"
+      className={cx("grid h-9 w-9 place-items-center rounded-full border border-border bg-surface text-muted hover:text-ink hover:border-primary", className)}
+    >
+      {isDark ? <Sun size={17} /> : <Moon size={17} />}
+    </button>
+  );
+}

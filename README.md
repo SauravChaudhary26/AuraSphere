@@ -1,110 +1,77 @@
-
 # AuraSphere 🎓✨
 
-[**🔗 Live Demo**](https://aura-sphere-teal.vercel.app/)
+**Turn focus into Aura.** AuraSphere is a student academic-engagement platform: set goals, manage courses, build a color-coded timetable, track attendance, run Pomodoro study rooms, challenge friends, and climb a campus leaderboard — all gamified with **Aura points**.
 
-AuraSphere is a **student academic engagement platform** designed to help students stay productive, accountable, and motivated in their academic journey.
-It combines **goal tracking, course management, attendance monitoring, timetables, and a virtual study room** into one seamless experience.
-
----
-
-## 🚀 Features
-
-* **User Authentication**
-  Students can sign up and log in to manage their academic journey.
-
-* **Goal/Target Creation**
-  Set academic or personal study goals. Completing goals rewards you with **Aura Points** 🌟.
-
-* **Aura Points + Leaderboard**
-  Gamified productivity! The leaderboard shows top students with the highest Aura Points.
-
-* **Course Management**
-  Add and organize your courses to keep everything in one place.
-
-* **Timetable Generation**
-  Create a personalized timetable based on your added courses.
-
-* **Attendance Tracking**
-  Easily mark and monitor attendance for your courses.
-
-* **Virtual Study Room (Pomodoro-based)**
-  Join a **Pomodoro-style study room** with other students, stay accountable, and boost focus.
+- **Frontend:** React 18 + Vite + Tailwind (custom design system, light & dark)
+- **Backend:** Node/Express + MongoDB (Mongoose) + Socket.IO
+- **Auth:** JWT + Google / GitHub / Facebook OAuth
+- **Email:** Resend (password reset + deadline reminders)
 
 ---
 
-## 🛠️ Tech Stack
+## ✨ Features
 
-**Frontend**
-
-* React.js ⚛️
-* TailwindCSS 🎨
-* Material UI
-
-**Backend**
-
-* Node.js 🚀
-* Express.js 🌐
-* MongoDB 🍃
-
----
-
-## 📦 Installation & Setup
-
-1. **Clone the repo**
-
-   ```bash
-   git clone https://github.com/SauravChaudhary26/AuraSphere
-   cd AuraSphere
-   ```
-
-2. **Backend Setup**
-
-   ```bash
-   cd backend
-   npm install
-   npm run dev
-   ```
-
-   Make sure to configure your `.env` file with MongoDB connection and JWT secret.
-
-3. **Frontend Setup**
-
-   ```bash
-   cd frontend
-   npm install
-   npm start
-   ```
-
-4. The app should now be running locally 🚀
+- **Goals & Aura** — complete goals to earn Aura; every change is recorded in a server-side ledger.
+- **Aura Store & Achievements** — spend Aura on power-ups/cosmetics; unlock achievements derived from real activity.
+- **Courses & color-coded timetable** — organize courses and lay them out across the week.
+- **Attendance** — mark present/absent per course with running percentage stats.
+- **Assignments** — deadlines with completion rewards.
+- **Study rooms** — authenticated, real-time Pomodoro sessions over Socket.IO.
+- **Friend challenges** — dare a real user to a goal; completing it awards Aura.
+- **Leaderboard** — all-time, weekly, and daily, with your own rank.
+- **Events & exam countdown** — live countdowns to what matters.
+- **Notifications** — email deadline reminders (opt-in).
 
 ---
 
-## 🔮 Future Plans
+## 🚀 Local development
 
-Here’s what’s next for AuraSphere:
+**Prerequisites:** Node 18+ and a MongoDB (local `mongod`, Docker, or an Atlas URI).
 
-* ✅ **Improved Leaderboard**: Add weekly/monthly challenges and badges for top performers.
-* ✅ **Social Features**: Allow students to form study groups and collaborate.
-* ✅ **Notifications & Reminders**: Get notified about classes, deadlines, and study sessions.
-* ✅ **AI Study Assistant**: Personalized study recommendations and productivity insights.
-* ✅ **Mobile App**: React Native version for on-the-go learning.
+```bash
+# 1. MongoDB (Docker example)
+docker run -d --name aurasphere-mongo -p 27017:27017 mongo:7
+
+# 2. Backend
+cd backend
+cp .env.example .env          # then edit: set MONGO_CONN + a strong JWT_SECRET
+npm install
+npm run dev                   # http://localhost:8080  (health: /health)
+
+# 3. Frontend (new terminal)
+cd frontend
+cp .env.example .env          # VITE_API_URL should point at the backend
+npm install
+npm run dev                   # http://localhost:3000
+```
+
+Generate a strong secret:
+```bash
+node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+```
+
+Environment variables are documented in [`backend/.env.example`](backend/.env.example) and [`frontend/.env.example`](frontend/.env.example). Optional integrations (email, GitHub/Facebook login) stay disabled until you add their keys — the app runs fully without them.
 
 ---
 
-## 🤝 Contributing
+## 🧪 Tests
 
-Contributions, issues, and feature requests are welcome!
-Feel free to fork this repo and submit a pull request.
+```bash
+cd backend && npm test        # Jest + Supertest (API health)
+```
 
 ---
+
+## 📦 Deployment
+
+See **[DEPLOYMENT.md](DEPLOYMENT.md)** for the full guide (Vercel + Render + Atlas) and the **required secret-rotation checklist**.
+
+---
+
+## 🔒 Security
+
+Auth uses short-lived JWTs; passwords are bcrypt-hashed and never returned. The API applies Helmet, per-route rate limiting, CORS allow-listing, input sanitization, and role-gated admin endpoints. **If you cloned this from an earlier version, rotate every credential — see DEPLOYMENT.md.**
 
 ## 📜 License
 
-This project is licensed under the **MIT License**.
-
----
-
-⚡ *AuraSphere — Make your study journey productive, social, and fun!*
-
----
+MIT.

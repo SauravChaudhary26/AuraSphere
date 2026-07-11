@@ -1,398 +1,264 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-import { toast } from 'react-toastify';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { ArrowLeft, ChevronDown, ChevronRight, CheckCircle2, Bug, Send } from "lucide-react";
+import {
+  Card,
+  Button,
+  Field,
+  Input,
+  Textarea,
+  Select,
+  ThemeToggle,
+  cx,
+} from "../components/ui";
+import Logo from "../components/Logo";
+import api from "../lib/http";
+import { handleError, handleSuccess } from "../utils/ToastMessages";
 
-const ReportIssue = () => {
-  const navigate = () => window.history.back();
-  const [formData, setFormData] = useState({
-    title: '',
-    category: '',
-    priority: 'medium',
-    description: '',
-    steps: '',
-    expectedBehavior: '',
-    actualBehavior: '',
-    browserInfo: navigator.userAgent,
-    contactEmail: ''
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+const CATEGORIES = [
+  "Bug Report",
+  "Feature Request",
+  "UI/UX Issue",
+  "Performance Issue",
+  "Security Concern",
+  "Data Issue",
+  "Login/Authentication",
+  "Other",
+];
 
-  const categories = [
-    'Bug Report',
-    'Feature Request',
-    'UI/UX Issue',
-    'Performance Issue',
-    'Security Concern',
-    'Data Issue',
-    'Login/Authentication',
-    'Other'
-  ];
+const PRIORITIES = [
+  { value: "low", label: "Low" },
+  { value: "medium", label: "Medium" },
+  { value: "high", label: "High" },
+  { value: "critical", label: "Critical" },
+];
 
-  const priorities = [
-    { value: 'low', label: 'Low', color: 'text-green-600' },
-    { value: 'medium', label: 'Medium', color: 'text-yellow-600' },
-    { value: 'high', label: 'High', color: 'text-orange-600' },
-    { value: 'critical', label: 'Critical', color: 'text-red-600' }
-  ];
+const EMPTY = {
+  title: "",
+  category: "",
+  priority: "medium",
+  description: "",
+  steps: "",
+  expectedBehavior: "",
+  actualBehavior: "",
+  contactEmail: "",
+};
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
+export default function ReportIssue() {
+  const [form, setForm] = useState(EMPTY);
+  const [showMore, setShowMore] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [done, setDone] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+
+  const submit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    if (!form.title.trim()) return handleError("Issue title is required");
+    if (!form.category) return handleError("Please select a category");
+    if (!form.description.trim()) return handleError("Issue description is required");
 
+    setSubmitting(true);
     try {
-      // Basic validation
-      if (!formData.title.trim()) {
-        toast.error('Issue title is required');
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (!formData.category) {
-        toast.error('Please select a category');
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (!formData.description.trim()) {
-        toast.error('Issue description is required');
-        setIsSubmitting(false);
-        return;
-      }
-
-      const response = await axios.post('/issues', {
-        ...formData,
-        userAgent: navigator.userAgent,
-        timestamp: new Date().toISOString(),
-        userId: localStorage.getItem('userId')
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        timeout: 10000 // 10 second timeout
+      await api.post("/issues", {
+        title: form.title.trim(),
+        category: form.category,
+        priority: form.priority,
+        description: form.description.trim(),
+        steps: form.steps.trim() || undefined,
+        expectedBehavior: form.expectedBehavior.trim() || undefined,
+        actualBehavior: form.actualBehavior.trim() || undefined,
+        contactEmail: form.contactEmail.trim() || undefined,
+        browserInfo:
+          typeof navigator !== "undefined" ? navigator.userAgent : undefined,
       });
-
-      if (response.data.success) {
-        toast.success(`Issue reported successfully! Ticket ID: ${response.data.data.id}`);
-        
-        // Reset form
-        setFormData({
-          title: '',
-          category: '',
-          priority: 'medium',
-          description: '',
-          steps: '',
-          expectedBehavior: '',
-          actualBehavior: '',
-          browserInfo: navigator.userAgent,
-          contactEmail: ''
-        });
-
-        // Optional: Navigate back after successful submission
-        setTimeout(() => {
-          navigate();
-        }, 2000);
-      } else {
-        throw new Error(response.data.message || 'Failed to submit issue');
-      }
-    } catch (error) {
-      console.error('Error submitting issue:', error);
-      
-      if (error.response) {
-        // Server responded with error status
-        const errorMessage = error.response.data?.message || 'Server error occurred';
-        toast.error(`Failed to submit issue: ${errorMessage}`);
-      } else if (error.request) {
-        // Request was made but no response received
-        toast.error('Network error. Please check your connection and try again.');
-      } else {
-        // Something else happened
-        toast.error('An unexpected error occurred. Please try again.');
-      }
+      handleSuccess("Issue reported. Thank you!");
+      setDone(true);
+    } catch (err) {
+      handleError(err?.response?.data?.message || "Couldn't submit your report");
     } finally {
-      setIsSubmitting(false);
+      setSubmitting(false);
     }
   };
 
+  const reset = () => {
+    setForm(EMPTY);
+    setShowMore(false);
+    setDone(false);
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-indigo-900 via-blue-800 to-indigo-900 border-b border-white/10">
-        <div className="max-w-4xl mx-auto px-6 py-8">
-          <button
-            onClick={() => navigate()}
-            className="mb-4 flex items-center text-white/70 hover:text-white transition-colors"
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Back to Dashboard
-          </button>
-          <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-orange-500 rounded-2xl flex items-center justify-center">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-              </svg>
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-white">Report an Issue</h1>
-              <p className="text-white/70 mt-2">Help us improve AuraSphere by reporting bugs or suggesting features</p>
-            </div>
-          </div>
-        </div>
+    <div className="min-h-screen bg-ground px-4 py-8">
+      <div className="mx-auto flex max-w-2xl items-center justify-between">
+        <Link to="/" aria-label="Back to AuraSphere home">
+          <Logo />
+        </Link>
+        <ThemeToggle />
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-6 py-8">
-        <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Basic Information */}
-          <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-8">
-            <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
-              <svg className="w-6 h-6 mr-3 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Basic Information
-            </h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-white/80 mb-2">
-                  Issue Title *
-                </label>
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleInputChange}
-                  required
-                  maxLength={200}
-                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  placeholder="Brief description of the issue"
-                />
+      <div className="mx-auto mt-6 max-w-2xl">
+        <Link
+          to="/"
+          className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-muted transition hover:text-ink"
+        >
+          <ArrowLeft size={16} /> Back home
+        </Link>
+
+        <Card className="p-6 sm:p-8">
+          {done ? (
+            <div className="flex flex-col items-center py-8 text-center">
+              <span className="grid h-16 w-16 place-items-center rounded-full bg-surface-2 text-success">
+                <CheckCircle2 size={36} />
+              </span>
+              <h1 className="mt-4 text-[26px] font-extrabold">Report received</h1>
+              <p className="mt-1 max-w-sm text-muted">
+                Thanks for helping us improve AuraSphere. Our team will take a
+                look at your report.
+              </p>
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                <Button variant="ghost" onClick={reset}>
+                  Report another issue
+                </Button>
+                <Link to="/">
+                  <Button>Done</Button>
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="mb-6 flex items-center gap-3">
+                <span className="grid h-11 w-11 place-items-center rounded-xl bg-surface-2 text-primary">
+                  <Bug size={22} />
+                </span>
+                <div>
+                  <h1 className="text-[26px] font-extrabold leading-tight">
+                    Report an issue
+                  </h1>
+                  <p className="text-sm text-muted">
+                    Found a bug or have an idea? Let us know.
+                  </p>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-white/80 mb-2">
-                  Category *
-                </label>
-                <select
-                  name="category"
-                  value={formData.category}
-                  onChange={handleInputChange}
+              <form onSubmit={submit} className="space-y-5">
+                <Field label="Title" required>
+                  <Input
+                    value={form.title}
+                    onChange={set("title")}
+                    maxLength={200}
+                    placeholder="Brief summary of the issue"
+                  />
+                </Field>
+
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <Field label="Category" required>
+                    <Select value={form.category} onChange={set("category")}>
+                      <option value="">Select a category</option>
+                      {CATEGORIES.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </Select>
+                  </Field>
+
+                  <Field label="Priority">
+                    <Select value={form.priority} onChange={set("priority")}>
+                      {PRIORITIES.map((p) => (
+                        <option key={p.value} value={p.value}>
+                          {p.label}
+                        </option>
+                      ))}
+                    </Select>
+                  </Field>
+                </div>
+
+                <Field
+                  label="Description"
                   required
-                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  hint={`${form.description.length}/2000 characters`}
                 >
-                  <option value="" className="bg-slate-800">Select a category</option>
-                  {categories.map((category) => (
-                    <option key={category} value={category} className="bg-slate-800">
-                      {category}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                  <Textarea
+                    value={form.description}
+                    onChange={set("description")}
+                    maxLength={2000}
+                    rows={5}
+                    placeholder="Describe the issue in detail…"
+                  />
+                </Field>
 
-              <div>
-                <label className="block text-sm font-medium text-white/80 mb-2">
-                  Priority Level
-                </label>
-                <div className="flex flex-wrap gap-4">
-                  {priorities.map((priority) => (
-                    <label key={priority.value} className="flex items-center">
-                      <input
-                        type="radio"
-                        name="priority"
-                        value={priority.value}
-                        checked={formData.priority === priority.value}
-                        onChange={handleInputChange}
-                        className="w-4 h-4 text-blue-600 bg-white/10 border-white/20 focus:ring-blue-500"
+                <button
+                  type="button"
+                  onClick={() => setShowMore((v) => !v)}
+                  aria-expanded={showMore}
+                  className="flex w-full items-center gap-1.5 text-sm font-semibold text-primary"
+                >
+                  {showMore ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                  {showMore ? "Hide extra details" : "Add more details (optional)"}
+                </button>
+
+                {showMore && (
+                  <div className={cx("space-y-5 border-l-2 border-border pl-4")}>
+                    <Field label="Steps to reproduce">
+                      <Textarea
+                        value={form.steps}
+                        onChange={set("steps")}
+                        maxLength={1000}
+                        rows={3}
+                        placeholder={"1. Go to…\n2. Click on…\n3. See error…"}
                       />
-                      <span className={`ml-2 text-sm font-medium ${priority.color}`}>
-                        {priority.label}
-                      </span>
-                    </label>
-                  ))}
+                    </Field>
+
+                    <div className="grid gap-5 sm:grid-cols-2">
+                      <Field label="Expected behavior">
+                        <Textarea
+                          value={form.expectedBehavior}
+                          onChange={set("expectedBehavior")}
+                          maxLength={500}
+                          rows={3}
+                          placeholder="What should happen…"
+                        />
+                      </Field>
+                      <Field label="Actual behavior">
+                        <Textarea
+                          value={form.actualBehavior}
+                          onChange={set("actualBehavior")}
+                          maxLength={500}
+                          rows={3}
+                          placeholder="What actually happens…"
+                        />
+                      </Field>
+                    </div>
+
+                    <Field
+                      label="Contact email"
+                      hint="Optional — so we can follow up with you."
+                    >
+                      <Input
+                        type="email"
+                        value={form.contactEmail}
+                        onChange={set("contactEmail")}
+                        placeholder="you@example.com"
+                      />
+                    </Field>
+                  </div>
+                )}
+
+                <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
+                  <Link to="/">
+                    <Button type="button" variant="ghost" disabled={submitting}>
+                      Cancel
+                    </Button>
+                  </Link>
+                  <Button type="submit" loading={submitting}>
+                    {!submitting && <Send size={16} />} Submit report
+                  </Button>
                 </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-white/80 mb-2">
-                  Contact Email
-                </label>
-                <input
-                  type="email"
-                  name="contactEmail"
-                  value={formData.contactEmail}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  placeholder="your.email@example.com"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Detailed Description */}
-          <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-8">
-            <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
-              <svg className="w-6 h-6 mr-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Detailed Description
-            </h2>
-
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-white/80 mb-2">
-                  Description *
-                </label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  required
-                  maxLength={2000}
-                  rows={4}
-                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
-                  placeholder="Provide a detailed description of the issue..."
-                />
-                <p className="text-xs text-white/50 mt-1">
-                  {formData.description.length}/2000 characters
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-white/80 mb-2">
-                  Steps to Reproduce
-                </label>
-                <textarea
-                  name="steps"
-                  value={formData.steps}
-                  onChange={handleInputChange}
-                  maxLength={1000}
-                  rows={3}
-                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
-                  placeholder="1. Go to...&#10;2. Click on...&#10;3. See error..."
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-white/80 mb-2">
-                    Expected Behavior
-                  </label>
-                  <textarea
-                    name="expectedBehavior"
-                    value={formData.expectedBehavior}
-                    onChange={handleInputChange}
-                    maxLength={500}
-                    rows={3}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
-                    placeholder="What should happen..."
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-white/80 mb-2">
-                    Actual Behavior
-                  </label>
-                  <textarea
-                    name="actualBehavior"
-                    value={formData.actualBehavior}
-                    onChange={handleInputChange}
-                    maxLength={500}
-                    rows={3}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
-                    placeholder="What actually happens..."
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* System Information */}
-          <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-8">
-            <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
-              <svg className="w-6 h-6 mr-3 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-              System Information
-            </h2>
-
-            <div>
-              <label className="block text-sm font-medium text-white/80 mb-2">
-                Browser Information
-              </label>
-              <textarea
-                name="browserInfo"
-                value={formData.browserInfo}
-                onChange={handleInputChange}
-                rows={2}
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
-                readOnly
-              />
-              <p className="text-xs text-white/50 mt-1">This information is automatically detected</p>
-            </div>
-          </div>
-
-          {/* Submit Button */}
-          <div className="flex justify-end space-x-4">
-            <button
-              type="button"
-              onClick={() => navigate()}
-              disabled={isSubmitting}
-              className="px-8 py-3 bg-white/10 border border-white/20 text-white rounded-xl font-medium hover:bg-white/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting || !formData.title.trim() || !formData.category || !formData.description.trim()}
-              className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-medium hover:from-blue-700 hover:to-indigo-700 transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center"
-            >
-              {isSubmitting ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Submitting...
-                </>
-              ) : (
-                <>
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                  </svg>
-                  Submit Issue
-                </>
-              )}
-            </button>
-          </div>
-        </form>
+              </form>
+            </>
+          )}
+        </Card>
       </div>
-	  {/* Toast Container */}
-        <ToastContainer
-          position="top-right"
-          autoClose={5000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="dark" // matches your dark theme
-          toastClassName="backdrop-blur-xl bg-white/10 border border-white/20"
-        />
     </div>
   );
-};
-
-export default ReportIssue;
+}

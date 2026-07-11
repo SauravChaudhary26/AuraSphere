@@ -1,39 +1,48 @@
-const UserModel = require("../models/User")
+const { getBalance, earnedSince } = require("../services/pointsService");
+const AuraTransaction = require("../models/AuraTransaction");
 
-const getPoints = async (req, res) => {
-    try {
-        const user = await UserModel.findById(req.userId);
-        if (!user) {
-            return res.status(404).json({ message: "Invalid user" });
-        }
-
-		const points = user.aura;
-
-        return res.status(200).json(points);
-    } catch (error) {
-        return res.status(500).json({ message: "Internal server error" });
-    }
+// Current aura balance.
+const getPoints = async (req, res, next) => {
+  try {
+    const points = await getBalance(req.userId);
+    res.status(200).json({ points });
+  } catch (err) {
+    next(err);
+  }
 };
 
-const setPoints = async (req, res) => {
-    try {
-        const user = await UserModel.findByIdAndUpdate(
-            req.userId,
-            { $inc: { aura: req.body.points } },  // increment aura instead of total
-            { new: true }
-        );
+// Balance plus today / this-week earnings for dashboards.
+const getPointsSummary = async (req, res, next) => {
+  try {
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfWeek = new Date(startOfDay);
+    startOfWeek.setDate(startOfDay.getDate() - startOfDay.getDay());
 
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
+    const [total, today, week] = await Promise.all([
+      getBalance(req.userId),
+      earnedSince(req.userId, startOfDay),
+      earnedSince(req.userId, startOfWeek),
+    ]);
 
-        return res.status(200).json({ points: user.aura });
-    } catch (error) {
-        return res.status(500).json({ message: "Internal server error" });
-    }
+    res.status(200).json({ total, today, week });
+  } catch (err) {
+    next(err);
+  }
 };
 
-module.exports = {
-	setPoints,
-	getPoints
-}
+// Recent aura ledger entries (earn + spend).
+const getPointsHistory = async (req, res, next) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit, 10) || 20, 100);
+    const history = await AuraTransaction.find({ userId: req.userId })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .lean();
+    res.status(200).json({ history });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { getPoints, getPointsSummary, getPointsHistory };
