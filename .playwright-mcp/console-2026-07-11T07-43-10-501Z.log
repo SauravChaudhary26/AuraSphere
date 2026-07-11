@@ -1,3 +1,0 @@
-[     563ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://aura-sphere-teal.vercel.app/static/images/avatar/2.jpg:0
-[    1749ms] [LOG] Connected to server: UMTEkk00bSZzJZbwAAAF @ https://aura-sphere-teal.vercel.app/static/js/main.5ab6486f.js:101
-[    1958ms] [LOG] {data: 120, status: 200, statusText: , headers: ke, config: Object} @ https://aura-sphere-teal.vercel.app/static/js/main.5ab6486f.js:1

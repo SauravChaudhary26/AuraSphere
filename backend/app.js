@@ -26,14 +26,21 @@ app.use(
   })
 );
 
-// CORS — explicit allow-list from config (no more wide-open cors()).
+// CORS allow-list: configured origins (CLIENT_URL / CORS_ORIGINS) plus any
+// *.vercel.app deployment (production + preview URLs), plus localhost for dev.
+// Disallowed origins are rejected WITHOUT an ACAO header (cb(null, false))
+// rather than throwing, so a blocked preflight fails cleanly instead of 500-ing.
+const VERCEL_APP = /^https:\/\/[a-z0-9-]+\.vercel\.app$/i;
+const LOCALHOST = /^http:\/\/localhost(:\d+)?$/i;
+const isAllowedOrigin = (origin) =>
+  !origin ||
+  config.corsOrigins.includes(origin) ||
+  VERCEL_APP.test(origin) ||
+  LOCALHOST.test(origin);
+
 app.use(
   cors({
-    origin(origin, cb) {
-      // allow non-browser clients (curl, health checks) with no Origin header
-      if (!origin || config.corsOrigins.includes(origin)) return cb(null, true);
-      return cb(new Error(`Origin ${origin} not allowed by CORS`));
-    },
+    origin: (origin, cb) => cb(null, isAllowedOrigin(origin)),
     credentials: true,
   })
 );

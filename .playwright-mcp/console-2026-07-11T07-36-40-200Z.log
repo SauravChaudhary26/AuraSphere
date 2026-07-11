@@ -1,8 +1,0 @@
-[    2579ms] [ERROR] Failed to load resource: the server responded with a status of 401 () @ https://aurasphere-rehd.onrender.com/points:0
-[    2887ms] [LOG] Connected to server: bXQFoZtRhW_RIp2YAAAD @ https://aura-sphere-teal.vercel.app/static/js/main.5ab6486f.js:101
-[   81801ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ https://aura-sphere-teal.vercel.app/login:0
-[  116461ms] [LOG] eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3R1c2VyMUBnbWFpbC5jb20iLCJfaWQiOiI2NzVmMTE2ZmJjYzdlNDIzZDIxMDMzZGUiLCJpYXQiOjE3ODM3NTU1MTYsImV4cCI6MTc4NDYxOTUxNn0.c_pedV3UEfVik3KM17yo5oiFDQChrQcjetsV0_OjHRo @ https://aura-sphere-teal.vercel.app/static/js/899.32a6d625.chunk.js:0
-[  117534ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://aura-sphere-teal.vercel.app/static/images/avatar/2.jpg:0
-[  118153ms] [ERROR] Failed to load resource: the server responded with a status of 401 () @ https://aurasphere-rehd.onrender.com/goals:0
-[  344072ms] [ERROR] Failed to load resource: the server responded with a status of 401 () @ https://aurasphere-rehd.onrender.com/courses:0
-[  344073ms] V

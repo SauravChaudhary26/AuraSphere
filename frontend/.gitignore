@@ -10,6 +10,10 @@
 
 # production
 /build
+/dist
+
+# vite / playwright artifacts
+.playwright-mcp/
 
 # misc
 .DS_Store
