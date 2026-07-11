@@ -1,16 +1,33 @@
 const mongoose = require("mongoose");
+const { config } = require("./config");
 
-const mongoUrl = process.env.MONGO_CONN;
+/**
+ * Connect to MongoDB. Called once during server bootstrap (never on import),
+ * so importing the app for tests does not require a live database.
+ */
+async function connectDB() {
+  mongoose.set("strictQuery", true);
 
-const connectToDatabase = async () => {
-    try {
-        await mongoose.connect(mongoUrl);
-        console.log("MongoDB connected successfully.");
-    } catch (error) {
-        console.error("Error connecting to MongoDB:", error.message);
-        process.exit(1); // Exit the process with failure
-    }
-};
+  mongoose.connection.on("connected", () => {
+    console.log("[db] MongoDB connected");
+  });
+  mongoose.connection.on("error", (err) => {
+    console.error("[db] MongoDB connection error:", err.message);
+  });
+  mongoose.connection.on("disconnected", () => {
+    console.warn("[db] MongoDB disconnected");
+  });
 
-// Call the connection function
-connectToDatabase();
+  await mongoose.connect(config.mongoUri, {
+    serverSelectionTimeoutMS: 10000,
+    maxPoolSize: 10,
+  });
+
+  return mongoose.connection;
+}
+
+async function disconnectDB() {
+  await mongoose.connection.close(false);
+}
+
+module.exports = { connectDB, disconnectDB };

@@ -1,71 +1,40 @@
-const UserModel = require("../models/User");
+const { getLeaderboard, rebuildLeaderboard } = require("../services/leaderboardService");
+const { config } = require("../config");
 
-let leaderboardCache = {
-    ranks: [],
-    lastUpdated: null,
+// Public (authenticated) leaderboard read: top-N plus the viewer's own rank.
+const leaderboard = async (req, res, next) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit, 10) || 10, 100);
+    const period = ["all", "week", "day"].includes(req.query.period) ? req.query.period : "all";
+    const data = await getLeaderboard(req.userId, { limit, period });
+    res.status(200).json({
+      success: true,
+      message: "Leaderboard fetched",
+      period,
+      userData: data.top, // legacy key kept for the existing frontend
+      top: data.top,
+      me: data.me,
+      updatedAt: data.updatedAt,
+    });
+  } catch (err) {
+    next(err);
+  }
 };
 
-const runLeaderboardUpdate = async () => {
-    try {
-        const leaderboardData = await UserModel.find()
-            .sort({ aura: -1 })
-            .limit(10);
-
-        const newList = leaderboardData.map((item) => ({
-            name: item.name,
-            aura: item.aura,
-        }));
-
-        leaderboardCache.ranks = newList;
-        leaderboardCache.lastUpdated = new Date();
-
-        console.log("Leaderboard was updated successfully");
-    } catch (error) {
-        console.error("Error while updating the leaderboard: ", error);
+// Cron-triggered rebuild. Secret-gated; refuses if no secret is configured.
+const updateLeaderboard = async (req, res, next) => {
+  try {
+    if (!config.cronSecret) {
+      return res.status(503).json({ success: false, message: "Cron not configured" });
     }
-};
-
-// Route handler
-const updateLeaderboard = async (req, res) => {
-    const cronSecret = req.headers["x-cron-secret"];
-    if (cronSecret !== process.env.CRON_SECRET) {
-        return res.status(403).send("Forbidden");
+    if (req.headers["x-cron-secret"] !== config.cronSecret) {
+      return res.status(403).json({ success: false, message: "Forbidden" });
     }
-
-    await runLeaderboardUpdate();
-    res.send("Leaderboard updated");
+    await rebuildLeaderboard();
+    res.json({ success: true, message: "Leaderboard rebuilt" });
+  } catch (err) {
+    next(err);
+  }
 };
 
-// Route handler to serve the leaderboard
-const leaderboard = async (req, res) => {
-    console.log("Leaderboard was accessed");
-    try {
-        if (leaderboardCache.ranks.length === 0) {
-            return res.status(404).json({
-                message: "No leaderboard data found",
-                success: false,
-            });
-        }
-
-        res.status(200).json({
-            userData: leaderboardCache.ranks,
-            success: true,
-            message: "Data fetched successfully",
-        });
-    } catch (error) {
-        console.error("Error fetching leaderboard data:", error.message);
-        res.status(500).json({
-            message: "Leaderboard inaccessible",
-            success: false,
-        });
-    }
-};
-
-//Run once when server starts
-runLeaderboardUpdate();
-
-module.exports = {
-    leaderboard,
-    updateLeaderboard,
-    runLeaderboardUpdate,
-};
+module.exports = { leaderboard, updateLeaderboard, rebuildLeaderboard };

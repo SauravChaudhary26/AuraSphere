@@ -1,235 +1,67 @@
-import { React, useState } from "react";
-import TextField from "@mui/material/TextField";
-import IconButton from "@mui/material/IconButton";
-import OutlinedInput from "@mui/material/OutlinedInput";
-import InputLabel from "@mui/material/InputLabel";
-import InputAdornment from "@mui/material/InputAdornment";
-import FormControl from "@mui/material/FormControl";
-import Visibility from "@mui/icons-material/Visibility";
-import VisibilityOff from "@mui/icons-material/VisibilityOff";
-import Button from "@mui/material/Button";
-import { NavLink, useNavigate } from "react-router-dom";
-import ".././css/Signup.css";
-import Divider from "@mui/material/Divider";
-import { Typography, Box } from "@mui/material";
-import { Facebook, Twitter, GitHub } from "@mui/icons-material";
-import GoogleIcon from "../../assets/google-icon";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
+import AuthLayout from "./AuthLayout";
+import SocialAuth from "./SocialAuth";
+import { Button, Field, Input } from "../../components/ui";
+import api from "../../lib/http";
+import { useAuth } from "../../contexts/AuthContext";
 import { handleError, handleSuccess } from "../../utils/ToastMessages";
-import axios from "axios"; // Import axios
 
-function Signup() {
-   const [showPassword, setShowPassword] = useState(false);
-   const handleClickShowPassword = () => setShowPassword((show) => !show);
-   const handleMouseDownPassword = (event) => event.preventDefault();
-   const handleMouseUpPassword = (event) => event.preventDefault();
+export default function Signup() {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [show, setShow] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-   // Input state for user information
-   const [userinfo, setuserinfo] = useState({
-      name: "",
-      email: "",
-      password: "",
-      repeatPassword: "",
-   });
+  const onChange = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
-   const handleChange = (e) => {
-      const { name, value } = e.target;
-      setuserinfo((prev) => ({ ...prev, [name]: value }));
-   };
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!form.name || !form.email || !form.password) return handleError("All fields are required");
+    if (form.password.length < 8) return handleError("Password must be at least 8 characters");
+    setLoading(true);
+    try {
+      const { data } = await api.post("/auth/signup", form);
+      login(data);
+      handleSuccess("Account created — welcome to AuraSphere!");
+      navigate("/dashboard", { replace: true });
+    } catch (err) {
+      handleError(err?.response?.data?.message || "Signup failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-   // Navigate hook for redirection
-   const navigate = useNavigate();
+  return (
+    <AuthLayout
+      title="Create your account"
+      subtitle="Start earning Aura for the work you're already doing."
+      footer={<>Already have an account? <Link to="/login" className="font-semibold text-primary">Sign in</Link></>}
+    >
+      <form onSubmit={submit} className="flex flex-col gap-4">
+        <Field label="Full name">
+          <Input name="name" autoComplete="name" value={form.name} onChange={onChange} placeholder="Ada Lovelace" />
+        </Field>
+        <Field label="Email">
+          <Input type="email" name="email" autoComplete="email" value={form.email} onChange={onChange} placeholder="you@college.edu" />
+        </Field>
+        <Field label="Password" hint="At least 8 characters, with a letter and a number.">
+          <div className="relative">
+            <Input type={show ? "text" : "password"} name="password" autoComplete="new-password" value={form.password} onChange={onChange} placeholder="••••••••" />
+            <button type="button" onClick={() => setShow((s) => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink" aria-label={show ? "Hide password" : "Show password"}>
+              {show ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+        </Field>
+        <Button type="submit" loading={loading} className="w-full">Create account</Button>
+      </form>
 
-   const handleSubmit = async (e) => {
-      e.preventDefault();
-      const { name, email, password, repeatPassword } = userinfo;
-
-      if (!name || !email || !password) {
-         return handleError("All fields are required");
-      } else if (password.length < 5) {
-         return handleError("Password must be at least 5 characters");
-      } else if (password !== repeatPassword) {
-         return handleError("Passwords don't match");
-      }
-
-      try {
-         const url = "/auth/signup";
-         const response = await axios.post(url, { name, email, password });
-
-         const { message, success, error, jwtToken, userId } = response.data;
-
-         if (success) {
-            handleSuccess(message);
-            localStorage.setItem("token", jwtToken);
-            localStorage.setItem("loggedInUser", name);
-            localStorage.setItem("userId", userId);
-
-			console.log("User ID: ", userId);
-			console.log("JWT Token: ", jwtToken);
-
-            await axios.post(
-				"/timetable",
-				{
-					userId,
-				},
-				{
-					headers: {
-						Authorization: `Bearer ${jwtToken}`,
-					},
-				}
-			);
-
-            setTimeout(() => navigate("/login"), 1000);
-         } else if (error) {
-            handleError(error.details[0]?.message || "Signup failed");
-         } else {
-            handleError(message || "Signup failed");
-         }
-      } catch (error) {
-         handleError(error.response?.data?.message || "Server error");
-      }
-   };
-
-   return (
-      <div
-         className="signup-page"
-         style={{
-            backgroundImage: `url(${require("../../assets/bg-3.png")})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            width: "100vw",
-            height: "100vh",
-         }}
-      >
-         <div className="signup-Container">
-            <form onSubmit={handleSubmit}>
-               <img
-                  src={require("../../assets/logo-design-2.png")}
-                  alt="AuraSphere Logo"
-                  style={{ width: "80px", marginBottom: "5px" }}
-               />
-               <div style={{ fontSize: "30px", marginBottom: "10px" }}>
-                  Welcome To AuraSphere💫
-               </div>
-               <div style={{ marginBottom: "20px" }}>
-                  Please Sign-in to your account and start gaining Aura!!!
-               </div>
-               <TextField
-                  required
-                  id="name"
-                  label="Name"
-                  name="name"
-                  variant="outlined"
-                  onChange={handleChange}
-                  style={{ marginBottom: "20px", width: "90%" }}
-               />
-               <TextField
-                  required
-                  id="email"
-                  label="E-mail"
-                  name="email"
-                  variant="outlined"
-                  onChange={handleChange}
-                  style={{ marginBottom: "20px", width: "90%" }}
-               />
-               <FormControl
-                  sx={{ width: "90%", mb: "20px" }}
-                  variant="outlined"
-               >
-                  <InputLabel htmlFor="outlined-adornment-password">
-                     Password
-                  </InputLabel>
-                  <OutlinedInput
-                     id="outlined-adornment-password"
-                     type={showPassword ? "text" : "password"}
-                     name="password"
-                     onChange={handleChange}
-                     endAdornment={
-                        <InputAdornment position="end">
-                           <IconButton
-                              aria-label="toggle password visibility"
-                              onClick={handleClickShowPassword}
-                              onMouseDown={handleMouseDownPassword}
-                              onMouseUp={handleMouseUpPassword}
-                              edge="end"
-                           >
-                              {showPassword ? (
-                                 <VisibilityOff />
-                              ) : (
-                                 <Visibility />
-                              )}
-                           </IconButton>
-                        </InputAdornment>
-                     }
-                     label="Password"
-                  />
-               </FormControl>
-               <TextField
-                  id="repeat-password"
-                  label="Re-enter Password"
-                  variant="outlined"
-                  type="password"
-                  name="repeatPassword"
-                  onChange={handleChange}
-                  style={{ marginBottom: "10px", width: "90%" }}
-               />
-               <Button
-                  variant="contained"
-                  type="submit"
-                  sx={{
-                     backgroundColor: "purple",
-                     color: "white",
-                     "&:hover": { backgroundColor: "darkviolet" },
-                     width: "90%",
-                     mt: "20px",
-                  }}
-               >
-                  SignUp
-               </Button>
-               <div className="create-account-section">
-                  <span>Already have an account?</span>
-                  <span style={{ marginLeft: "4%" }}>
-                     <NavLink to="/login" style={{ textDecoration: "none" }}>
-                        Sign in instead
-                     </NavLink>
-                  </span>
-               </div>
-               <Divider
-                  variant="middle"
-                  style={{ width: "100%", margin: "20px 0" }}
-               >
-                  <Typography variant="caption" color="textSecondary">
-                     or
-                  </Typography>
-               </Divider>
-               <Box display="flex" justifyContent="center" gap={2}>
-                  <IconButton
-                     href="https://facebook.com"
-                     style={{ color: "#3b5998" }}
-                  >
-                     <Facebook fontSize="large" />
-                  </IconButton>
-                  <IconButton
-                     href="https://twitter.com"
-                     style={{ color: "#1DA1F2" }}
-                  >
-                     <Twitter fontSize="large" />
-                  </IconButton>
-                  <IconButton
-                     href="https://github.com"
-                     style={{ color: "#333" }}
-                  >
-                     <GitHub fontSize="large" />
-                  </IconButton>
-                  <IconButton href="https://google.com">
-                     <GoogleIcon width="32px" height="32px" />
-                  </IconButton>
-               </Box>
-            </form>
-         </div>
-         <ToastContainer />
+      <div className="my-6 flex items-center gap-3 text-xs uppercase tracking-wide text-faint">
+        <span className="h-px flex-1 bg-border" /> or <span className="h-px flex-1 bg-border" />
       </div>
-   );
+      <SocialAuth />
+    </AuthLayout>
+  );
 }
-export default Signup;

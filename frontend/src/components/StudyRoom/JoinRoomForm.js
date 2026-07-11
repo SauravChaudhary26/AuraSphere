@@ -1,166 +1,94 @@
-import  { useState } from 'react';
-import { Users, Play, Clock, AlertCircle } from 'lucide-react';
+import { useState } from "react";
+import { Play, DoorOpen, Wifi } from "lucide-react";
+import { Card, Button, Field, Input, Select, Badge, Avatar } from "../ui";
 
-const JoinRoomForm = ({ onJoin, isConnected }) => {
-  const [name, setName] = useState('');
-  const [studyDuration, setStudyDuration] = useState(25);
-  const [isJoining, setIsJoining] = useState(false);
-  const [error, setError] = useState('');
+const DURATIONS = [
+  { value: 15, label: "15 minutes" },
+  { value: 25, label: "25 minutes (Pomodoro)" },
+  { value: 50, label: "50 minutes" },
+];
 
-  const studyOptions = [
-	{ value: 1, label: '1 minutes'},
-    { value: 15, label: '15 minutes' },
-    { value: 25, label: '25 minutes (Pomodoro)' },
-    { value: 30, label: '30 minutes' },
-    { value: 45, label: '45 minutes' },
-    { value: 60, label: '1 hour' },
-    { value: 90, label: '1.5 hours' },
-    { value: 120, label: '2 hours' }
-  ];
+/**
+ * Lobby form. Collects a room id + a study duration; the participant name is
+ * taken from the signed-in user, so only these two fields are shown.
+ */
+const JoinRoomForm = ({ onJoin, joining = false, userName = "" }) => {
+  const [roomName, setRoomName] = useState("default-room");
+  const [studyMinutes, setStudyMinutes] = useState(25);
+  const [error, setError] = useState("");
 
-  const handleSubmit = async () => {
-    setError('');
-    
-    if (!name.trim()) {
-      setError('Please enter your name');
+  const submit = (e) => {
+    e?.preventDefault();
+    const room = roomName.trim();
+    if (!room) {
+      setError("Please enter a room name");
       return;
     }
-
-    if (name.trim().length < 2) {
-      setError('Name must be at least 2 characters');
-      return;
-    }
-
-    if (!isConnected) {
-      setError('Not connected to server. Please try again.');
-      return;
-    }
-
-    setIsJoining(true);
-
-    try {
-      await onJoin({
-        name: name.trim(),
-        studyDuration,
-        avatar: name.trim().charAt(0).toUpperCase()
-      });
-    } catch (err) {
-      setError('Failed to join room. Please try again.');
-      setIsJoining(false);
-    }
-  };
-
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      handleSubmit();
-    }
+    setError("");
+    onJoin({ roomName: room, studyMinutes: Number(studyMinutes) });
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Users className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Join Study Room</h1>
-          <p className="text-gray-600">Start your focused study session</p>
-          
-          {/* Connection Status */}
-          <div className={`flex items-center justify-center gap-2 mt-3 text-sm ${
-            isConnected ? 'text-green-600' : 'text-red-600'
-          }`}>
-            <div className={`w-2 h-2 rounded-full ${
-              isConnected ? 'bg-green-500' : 'bg-red-500'
-            }`}></div>
-            {isConnected ? 'Connected' : 'Disconnected'}
-          </div>
+    <div className="mx-auto max-w-md">
+      <Card as="form" onSubmit={submit} className="p-6">
+        <div className="mb-6 flex flex-col items-center text-center">
+          <span className="mb-3 grid h-14 w-14 place-items-center rounded-full bg-surface-2 text-primary">
+            <DoorOpen size={26} />
+          </span>
+          <h2 className="text-xl font-bold">Join a study room</h2>
+          <p className="mt-1 text-sm text-muted">Focus alongside others in real time.</p>
+          {userName && (
+            <div className="mt-3 flex items-center gap-2">
+              <Avatar name={userName} size={26} />
+              <span className="text-sm text-muted">
+                Joining as <span className="font-semibold text-ink">{userName}</span>
+              </span>
+            </div>
+          )}
         </div>
 
-        {/* Error Message */}
-        {error && (
-          <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            <span className="text-sm">{error}</span>
-          </div>
-        )}
-
-        <div className="space-y-6">
-          {/* Name Input */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Your Name
-            </label>
-            <input
-              type="text"
-              value={name}
+        <div className="space-y-4">
+          <Field label="Room name" required error={error} hint="Share this name so friends land in the same room.">
+            <Input
+              value={roomName}
               onChange={(e) => {
-                setName(e.target.value);
-                if (error) setError('');
+                setRoomName(e.target.value);
+                if (error) setError("");
               }}
-              onKeyPress={handleKeyPress}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-              placeholder="Enter your name"
-              maxLength={20}
-              disabled={isJoining}
+              placeholder="e.g. finals-crunch"
+              maxLength={40}
+              disabled={joining}
+              aria-label="Room name"
             />
-            <p className="text-xs text-gray-500 mt-1">
-              {name.length}/20 characters
-            </p>
-          </div>
+          </Field>
 
-          {/* Duration Selection */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Clock className="w-4 h-4 inline mr-1" />
-              Study Duration
-            </label>
-            <select
-              value={studyDuration}
-              onChange={(e) => setStudyDuration(Number(e.target.value))}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-              disabled={isJoining}
+          <Field label="Study duration">
+            <Select
+              value={studyMinutes}
+              onChange={(e) => setStudyMinutes(Number(e.target.value))}
+              disabled={joining}
+              aria-label="Study duration"
             >
-              {studyOptions.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
+              {DURATIONS.map((d) => (
+                <option key={d.value} value={d.value}>
+                  {d.label}
                 </option>
               ))}
-            </select>
-          </div>
+            </Select>
+          </Field>
 
-          {/* Join Button */}
-          <button
-            onClick={handleSubmit}
-            disabled={isJoining || !isConnected || !name.trim()}
-            className={`w-full py-3 px-6 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
-              isJoining || !isConnected || !name.trim()
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 hover:shadow-lg transform hover:scale-105'
-            }`}
-          >
-            {isJoining ? (
-              <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                Joining...
-              </>
-            ) : (
-              <>
-                <Play className="w-5 h-5" />
-                Start Studying
-              </>
-            )}
-          </button>
+          <Button type="submit" loading={joining} disabled={joining} className="w-full">
+            {!joining && <Play size={17} />}
+            {joining ? "Joining…" : "Start studying"}
+          </Button>
 
-          {/* Tips */}
-          <div className="text-center">
-            <p className="text-xs text-gray-500">
-              💡 Tip: Use the Pomodoro technique (25 min) for better focus
-            </p>
+          <div className="flex items-center justify-center gap-2 pt-1">
+            <Badge variant="neutral" dot>
+              <Wifi size={12} /> Connects when you join
+            </Badge>
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   );
 };

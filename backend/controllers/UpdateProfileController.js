@@ -1,44 +1,59 @@
-const UserModel = require("../models/User");
+const bcrypt = require("bcrypt");
+const User = require("../models/User");
 
+const publicUser = (u) => ({
+  id: u._id,
+  name: u.name,
+  email: u.email,
+  aura: u.aura || 0,
+  avatar: u.avatar || null,
+  role: u.role || "user",
+  notifyByEmail: u.notifyByEmail !== false,
+});
 
-// Function to update user profile
-const updateUserProfile = async (req, res) => {
-    try {
-        const userId = req.userId; // This should come from the authMiddleware
-        // const { userId } = req.body; //Just for testing purposes. Should be corrected after properly implementing JWT.
-        const { name, email, password } = req.body;
+const updateUserProfile = async (req, res, next) => {
+  try {
+    const { name, email, password, currentPassword, avatar, notifyByEmail } = req.body;
 
-        // Find the user by ID
-        const user = await UserModel.findById(userId);
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
+    const user = await User.findById(req.userId).select("+password");
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
-        // Update user fields if provided
-        if (name) user.name = name;
-        if (email) user.email = email;
-        if (password && !(await bcrypt.compare(password, user.password))) {
-            // Only hash if the password is different
-            user.password = await bcrypt.hash(password, 10);
-        }
-
-        // Save updated user
-        const updatedUser = await user.save();
-
-        res.status(200).json({
-            message: "User profile updated successfully",
-            user: {
-                id: updatedUser._id,
-                name: updatedUser.name,
-                email: updatedUser.email,
-            },
-        });
-    } catch (error) {
-        console.error(error); // Log the error for debugging
-        res.status(500).json({ message: "Server error" });
+    if (email && email !== user.email) {
+      const exists = await User.findOne({ email });
+      if (exists) {
+        return res.status(409).json({ success: false, message: "That email is already in use" });
+      }
+      user.email = email;
     }
+    if (name) user.name = name;
+    if (avatar !== undefined) user.avatar = avatar || null;
+    if (typeof notifyByEmail === "boolean") user.notifyByEmail = notifyByEmail;
+
+    if (password) {
+      // If the account already has a password, require and verify the current one.
+      if (user.password) {
+        if (!currentPassword) {
+          return res
+            .status(400)
+            .json({ success: false, message: "Current password is required to set a new one" });
+        }
+        const ok = await bcrypt.compare(currentPassword, user.password);
+        if (!ok) {
+          return res.status(400).json({ success: false, message: "Current password is incorrect" });
+        }
+      }
+      user.password = await bcrypt.hash(password, 12);
+    }
+
+    await user.save();
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      user: publicUser(user),
+    });
+  } catch (err) {
+    next(err);
+  }
 };
 
-module.exports = {
-    updateUserProfile,
-};
+module.exports = { updateUserProfile };

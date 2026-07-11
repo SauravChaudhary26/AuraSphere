@@ -1,27 +1,39 @@
-const { signup, login, googleAuth } = require("../controllers/AuthControllers");
-const { updateUserProfile } = require("../controllers/UpdateProfileController");
-const {
-   signupValidation,
-   loginValidation,
-   updateProfileValidation,
-} = require("../middlewares/AuthValidation");
-const JwtValidation = require("../middlewares/JwtValidation");
-// console.log('Starting authRouter...'); // To check if the file is loading correctly
-// const authMiddleware = require("../middlewares/Auth");
-// console.log('authMiddleware imported successfully'); // To verify if import worked
-
 const router = require("express").Router();
 
-router.post("/login", loginValidation, login);
-router.post("/signup", signupValidation, signup);
-router.put(
-   "/profile",
-   JwtValidation,
-   updateProfileValidation,
-   updateUserProfile
-);
-router.get("/google", googleAuth);
+const {
+  signup,
+  login,
+  me,
+  googleAuth,
+  forgotPassword,
+  resetPassword,
+} = require("../controllers/AuthControllers");
+const { updateUserProfile } = require("../controllers/UpdateProfileController");
+const {
+  githubStart,
+  githubCallback,
+  facebookStart,
+  facebookCallback,
+} = require("../controllers/oauthController");
+const {
+  signupValidation,
+  loginValidation,
+  updateProfileValidation,
+  forgotPasswordValidation,
+  resetPasswordValidation,
+} = require("../middlewares/AuthValidation");
+const JwtValidation = require("../middlewares/JwtValidation");
 
-// const authMiddleware = require("../middleware/Auth");
+router.post("/signup", signupValidation, signup);
+router.post("/login", loginValidation, login);
+router.get("/google", googleAuth);
+router.get("/github/start", githubStart);
+router.get("/github/callback", githubCallback);
+router.get("/facebook/start", facebookStart);
+router.get("/facebook/callback", facebookCallback);
+router.get("/me", JwtValidation, me);
+router.post("/forgot-password", forgotPasswordValidation, forgotPassword);
+router.post("/reset-password", resetPasswordValidation, resetPassword);
+router.put("/profile", JwtValidation, updateProfileValidation, updateUserProfile);
 
 module.exports = router;

@@ -1,0 +1,33 @@
+- generic [ref=e7]:
+  - banner [ref=e124]:
+    - generic [ref=e125]:
+      - generic [ref=e126]:
+        - button "menu" [ref=e249] [cursor=pointer]
+        - generic [ref=e130] [cursor=pointer]: AuraSphere
+      - generic [ref=e131]:
+        - generic [ref=e132]:
+          - generic [ref=e133]: ⭐
+          - generic [ref=e134]: 0 Aura
+        - button "Profile Menu" [ref=e250] [cursor=pointer]:
+          - generic [ref=e136]: T
+  - generic [ref=e252]:
+    - generic [ref=e254]:
+      - generic [ref=e259]:
+        - heading "Attendance Tracker" [level=1] [ref=e260]
+        - paragraph [ref=e261]: Monitor your class attendance
+      - button "Mark Attendance" [ref=e262] [cursor=pointer]
+    - generic [ref=e263]:
+      - generic [ref=e264]:
+        - generic [ref=e265]: Select Course
+        - combobox [ref=e266]
+      - generic [ref=e272]:
+        - paragraph [ref=e273]: Attendance Rate
+        - paragraph [ref=e274]: 0%
+      - generic [ref=e280]:
+        - paragraph [ref=e281]: Classes Attended
+        - paragraph [ref=e282]: 0/0
+    - generic [ref=e283]:
+      - generic [ref=e284]:
+        - heading "Attendance Records" [level=3] [ref=e285]
+        - paragraph
+      - paragraph [ref=e290]: No attendance records found

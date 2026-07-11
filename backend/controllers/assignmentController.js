@@ -1,77 +1,81 @@
 const Assignment = require("../models/Assignment");
+const { awardPoints } = require("../services/pointsService");
+const { config } = require("../config");
 
-// Get all assignments for a given user
-const getAssignments = async (req, res) => {
-   const { userId } = req.params;
-   try {
-      const assignments = await Assignment.find({ userId });
-      res.status(200).json(assignments);
-   } catch (error) {
-      res.status(500).json({ message: "Error fetching assignments" });
-   }
+// All handlers scope strictly to req.userId (set by JwtValidation). The client
+// can never address another user's assignments.
+
+const getAssignments = async (req, res, next) => {
+  try {
+    const assignments = await Assignment.find({ userId: req.userId }).sort({ deadline: 1 });
+    res.status(200).json(assignments);
+  } catch (err) {
+    next(err);
+  }
 };
 
-// Add a new assignment
-const addAssignment = async (req, res) => {
-   const { userId, title, description, course, deadline } = req.body;
-   if (!userId || !title || !course || !deadline) {
-      return res.status(400).json({ message: "Missing required fields" });
-   }
-   try {
-      await Assignment.create({
-         userId,
-         title,
-         description,
-         course,
-         deadline,
-         completed: false,
+const addAssignment = async (req, res, next) => {
+  try {
+    const { title, description, course, deadline } = req.body;
+    if (!title || !course || !deadline) {
+      return res.status(400).json({ message: "Title, course and deadline are required" });
+    }
+    await Assignment.create({
+      userId: req.userId,
+      title,
+      description,
+      course,
+      deadline,
+      completed: false,
+    });
+    const assignments = await Assignment.find({ userId: req.userId }).sort({ deadline: 1 });
+    res.status(201).json(assignments);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const updateAssignment = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { completed, title, description, course, deadline } = req.body;
+
+    const existing = await Assignment.findOne({ _id: id, userId: req.userId });
+    if (!existing) return res.status(404).json({ message: "Assignment not found" });
+
+    const wasCompleted = existing.completed;
+
+    if (title !== undefined) existing.title = title;
+    if (description !== undefined) existing.description = description;
+    if (course !== undefined) existing.course = course;
+    if (deadline !== undefined) existing.deadline = deadline;
+    if (completed !== undefined) existing.completed = completed;
+    await existing.save();
+
+    // Award aura the first time an assignment is completed.
+    if (!wasCompleted && existing.completed) {
+      await awardPoints(req.userId, config.points.assignmentCompleted, "assignment_completed", {
+        model: "Assignment",
+        id: existing._id,
       });
-      // Return updated assignments list for the user
-      const assignments = await Assignment.find({ userId });
-      res.status(201).json(assignments);
-   } catch (error) {
-      res.status(500).json({ message: "Error adding assignment" });
-   }
+    }
+
+    res.status(200).json(existing);
+  } catch (err) {
+    next(err);
+  }
 };
 
-// Toggle assignment completion status
-const updateAssignment = async (req, res) => {
-   const { id } = req.params;
-   const { completed } = req.body;
-   try {
-      const updatedAssignment = await Assignment.findByIdAndUpdate(
-         id,
-         { completed },
-         { new: true }
-      );
-      if (!updatedAssignment) {
-         return res.status(404).json({ message: "Assignment not found" });
-      }
-      res.status(200).json(updatedAssignment);
-   } catch (error) {
-      res.status(500).json({ message: "Error updating assignment" });
-   }
+const deleteAssignment = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const deleted = await Assignment.findOneAndDelete({ _id: id, userId: req.userId });
+    if (!deleted) return res.status(404).json({ message: "Assignment not found" });
+    const assignments = await Assignment.find({ userId: req.userId }).sort({ deadline: 1 });
+    res.status(200).json(assignments);
+  } catch (err) {
+    next(err);
+  }
 };
 
-// Delete an assignment and return updated assignments list
-const deleteAssignment = async (req, res) => {
-   const { id } = req.params;
-   const userId = req.query.userId; // Pass userId as a query parameter
-   try {
-      const data = await Assignment.findByIdAndDelete(id);
-      if (userId) {
-         const assignments = await Assignment.find({ userId });
-         return res.status(200).json(assignments);
-      }
-      res.status(200).json(data);
-   } catch (error) {
-      res.status(500).json({ message: "Error deleting assignment" });
-   }
-};
-
-module.exports = {
-   getAssignments,
-   addAssignment,
-   updateAssignment,
-   deleteAssignment,
-};
+module.exports = { getAssignments, addAssignment, updateAssignment, deleteAssignment };

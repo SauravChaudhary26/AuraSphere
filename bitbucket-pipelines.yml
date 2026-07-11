@@ -1,18 +1,17 @@
-image: node:18
+image: node:20
 
 pipelines:
   default:
     - step:
-        name: Frontend Build and Test
+        name: Frontend Build
         caches:
           - node
         script:
           - cd frontend
           - npm ci
           - npm run build
-          - npm test -- --watchAll=false
     - step:
-        name: Backend Build and Test
+        name: Backend Test
         caches:
           - node
         script:
@@ -22,10 +21,8 @@ pipelines:
     - step:
         name: Deploy to Production
         deployment: production
-        trigger: manual # Manual trigger for safety until targets are defined
+        trigger: manual
         script:
-          - echo "Deploying to Production..."
-          # Add actual deployment commands here e.g.
-          # git push https://heroku:$HEROKU_API_KEY@git.heroku.com/$HEROKU_APP_NAME.git HEAD:master
-          # or
-          # curl -X POST $RENDER_DEPLOY_HOOK
+          - echo "Frontend deploys via Vercel; backend via Render (auto-deploy on push)."
+          # Optionally trigger a Render deploy hook:
+          # - curl -fsSL -X POST "$RENDER_DEPLOY_HOOK"

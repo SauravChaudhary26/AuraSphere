@@ -1,243 +1,269 @@
-import { useState, useEffect } from 'react';
-import { Calendar, Clock, BookOpen, Save, Trash2 } from 'lucide-react';
-import axios from "axios";
-import Loader from "../components/Loader"
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { Save, Trash2, CalendarDays, BookOpen } from "lucide-react";
+import {
+  PageHeader,
+  Button,
+  Card,
+  Badge,
+  Select,
+  EmptyState,
+  LoadingScreen,
+} from "../components/ui";
+import api from "../lib/http";
+import { handleError, handleSuccess } from "../utils/ToastMessages";
 
-const Timetable = () => {
-    const [courses, setCourses] = useState([]);
-    const [timetable, setTimetable] = useState({});
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
+const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+const SLOTS = [
+  "09:00-10:00",
+  "10:00-11:00",
+  "11:00-12:00",
+  "12:00-13:00",
+  "13:00-14:00",
+  "14:00-15:00",
+  "15:00-16:00",
+  "16:00-17:00",
+];
 
-    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-    const timeSlots = [
-        '09:00-10:00', '10:00-11:00', '11:00-12:00', '12:00-13:00',
-        '13:00-14:00', '14:00-15:00', '15:00-16:00', '16:00-17:00'
-    ];
-
-    const fetchCourses = async () => {
-        try {
-            const response = await axios.get('/courses');
-            const data = response.data;
-            setCourses(data);
-        } catch (error) {
-            console.error('Error fetching courses:', error);
-        }
-    };
-
-    const fetchTimetable = async () => {
-        try {
-            const response = await axios.get('/timetable');
-            const data = response.data;
-            setTimetable(data.schedule || {});
-        } catch (error) {
-            console.error('Error fetching timetable:', error);
-            initializeEmptyTimetable();
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const initializeEmptyTimetable = () => {
-        const emptySchedule = {};
-        days.forEach(day => {
-            emptySchedule[day] = {};
-            timeSlots.forEach(slot => {
-                emptySchedule[day][slot] = null;
-            });
-        });
-        setTimetable(emptySchedule);
-    };
-
-    const handleSlotChange = (day, slot, courseId) => {
-        setTimetable(prev => ({
-            ...prev,
-            [day]: {
-                ...prev[day],
-                [slot]: courseId || null
-            }
-        }));
-    };
-
-    const saveTimetable = async () => {
-        setSaving(true);
-        try {
-            const res = await axios.post('/timetable', { schedule: timetable });
-
-            if (res.status === 200) {
-                alert('Timetable saved successfully!');
-            } else {
-                throw new Error('Failed to save timetable');
-            }
-        } catch (error) {
-            console.error('Error saving timetable:', error);
-            alert('Error saving timetable. Please try again.');
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const clearTimetable = async () => {
-        if (window.confirm('Are you sure you want to clear the entire timetable?')) {
-            initializeEmptyTimetable();
-            await axios.delete('/timetable');
-        }
-    };
-
-    const getSelectedCourse = (courseId) => {
-        return courses.find(course => course._id === courseId);
-    };
-
-    
-    useEffect(() => {
-        fetchCourses();
-        fetchTimetable();
-    }, []);
-
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-                <Loader />
-            </div>
-        );
-    }
-
-    return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-            <div className="max-w-7xl mx-auto">
-                {/* Header */}
-                <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                            <Calendar className="h-8 w-8 text-blue-600" />
-                            <div>
-                                <h1 className="text-3xl font-bold text-gray-900">My Timetable</h1>
-                                <p className="text-gray-600">Create and manage your weekly schedule</p>
-                            </div>
-                        </div>
-                        <div className="flex space-x-3">
-                            <button
-                                onClick={clearTimetable}
-                                className="flex items-center space-x-2 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
-                            >
-                                <Trash2 className="h-4 w-4" />
-                                <span>Clear All</span>
-                            </button>
-                            <button
-                                onClick={saveTimetable}
-                                disabled={saving}
-                                className="flex items-center space-x-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-                            >
-                                <Save className="h-4 w-4" />
-                                <span>{saving ? 'Saving...' : 'Save Timetable'}</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Timetable Grid */}
-                <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead>
-                                <tr className="bg-blue-600 text-white">
-                                    <th className="px-4 py-3 text-left font-semibold min-w-32">
-                                        <div className="flex items-center space-x-2">
-                                            <Clock className="h-4 w-4" />
-                                            <span>Time / Day</span>
-                                        </div>
-                                    </th>
-                                    {days.map(day => (
-                                        <th key={day} className="px-4 py-3 text-center font-semibold min-w-48">
-                                            {day}
-                                        </th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {timeSlots.map((slot, slotIndex) => (
-                                    <tr key={slot} className={slotIndex % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                                        <td className="px-4 py-3 border-r border-gray-200 font-medium text-gray-700 bg-blue-50">
-                                            <div className="flex items-center space-x-2">
-                                                <Clock className="h-4 w-4 text-blue-500" />
-                                                <span>{slot}</span>
-                                            </div>
-                                        </td>
-                                        {days.map(day => {
-                                            const selectedCourseId = timetable[day]?.[slot];
-                                            const selectedCourse = selectedCourseId ? getSelectedCourse(selectedCourseId) : null;
-
-                                            return (
-                                                <td key={`${day}-${slot}`} className="px-3 py-3 border-r border-gray-200">
-                                                    <select
-                                                        value={selectedCourseId || ''}
-                                                        onChange={(e) => handleSlotChange(day, slot, e.target.value)}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm transition-colors"
-                                                    >
-                                                        <option value="">Break</option>
-                                                        {courses.map(course => (
-                                                            <option key={course._id} value={course._id}>
-                                                                {course.name}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-
-                                                    {/* Display selected course info */}
-                                                    {selectedCourse && (
-                                                        <div className="mt-2 p-2 bg-blue-50 rounded-md border-l-4 border-blue-400">
-                                                            <div className="flex items-center space-x-1">
-                                                                <BookOpen className="h-3 w-3 text-blue-600" />
-                                                                <span className="text-xs font-medium text-blue-800">
-                                                                    {selectedCourse.name}
-                                                                </span>
-                                                            </div>
-                                                            {selectedCourse.instructor && (
-                                                                <p className="text-xs text-blue-600 mt-1">
-                                                                    {selectedCourse.instructor}
-                                                                </p>
-                                                            )}
-                                                            {selectedCourse.room && (
-                                                                <p className="text-xs text-blue-500">
-                                                                    Room: {selectedCourse.room}
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </td>
-                                            );
-                                        })}
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                {/* Summary */}
-                <div className="mt-6 bg-white rounded-lg shadow-lg p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Schedule Summary</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                        <div className="bg-blue-50 p-3 rounded-lg">
-                            <span className="font-medium text-blue-800">Total Classes: </span>
-                            <span className="text-blue-700">
-                                {Object.values(timetable).reduce((total, daySchedule) =>
-                                    total + Object.values(daySchedule || {}).filter(course => course).length, 0
-                                )}
-                            </span>
-                        </div>
-                        <div className="bg-green-50 p-3 rounded-lg">
-                            <span className="font-medium text-green-800">Available Courses: </span>
-                            <span className="text-green-700">{courses.length}</span>
-                        </div>
-                        <div className="bg-purple-50 p-3 rounded-lg">
-                            <span className="font-medium text-purple-800">Time Slots: </span>
-                            <span className="text-purple-700">{timeSlots.length} per day</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
+const emptySchedule = () => {
+  const schedule = {};
+  DAYS.forEach((day) => {
+    schedule[day] = {};
+    SLOTS.forEach((slot) => {
+      schedule[day][slot] = null;
+    });
+  });
+  return schedule;
 };
 
-export default Timetable;
+// Merge whatever the API returns onto a full DAYS x SLOTS grid so every cell exists.
+const normalize = (incoming = {}) => {
+  const base = emptySchedule();
+  DAYS.forEach((day) => {
+    SLOTS.forEach((slot) => {
+      const val = incoming?.[day]?.[slot];
+      base[day][slot] = val || null;
+    });
+  });
+  return base;
+};
+
+export default function Timetable() {
+  const navigate = useNavigate();
+  const [courses, setCourses] = useState([]);
+  const [schedule, setSchedule] = useState(emptySchedule);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [clearing, setClearing] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      const [c, t] = await Promise.allSettled([
+        api.get("/courses"),
+        api.get("/timetable"),
+      ]);
+      if (c.status === "fulfilled") setCourses(c.value.data || []);
+      if (t.status === "fulfilled") {
+        setSchedule(normalize(t.value.data?.schedule));
+      } else {
+        setSchedule(emptySchedule());
+      }
+      if (c.status === "rejected") handleError("Couldn't load your courses");
+    } catch (err) {
+      handleError("Couldn't load your timetable");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const courseById = (id) => courses.find((c) => c._id === id);
+
+  const setCell = (day, slot, courseId) => {
+    setSchedule((prev) => ({
+      ...prev,
+      [day]: { ...prev[day], [slot]: courseId || null },
+    }));
+  };
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await api.post("/timetable", { schedule });
+      handleSuccess("Timetable saved");
+    } catch (err) {
+      handleError(err?.response?.data?.message || "Couldn't save timetable");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const clear = async () => {
+    if (!window.confirm("Clear your entire timetable? This can't be undone.")) return;
+    const snapshot = schedule;
+    setSchedule(emptySchedule()); // optimistic
+    setClearing(true);
+    try {
+      await api.delete("/timetable");
+      handleSuccess("Timetable cleared");
+    } catch (err) {
+      setSchedule(snapshot); // rollback
+      handleError("Couldn't clear timetable");
+    } finally {
+      setClearing(false);
+    }
+  };
+
+  if (loading) return <LoadingScreen label="Loading your timetable…" />;
+
+  const totalClasses = DAYS.reduce(
+    (sum, day) => sum + SLOTS.filter((slot) => schedule[day]?.[slot]).length,
+    0
+  );
+
+  return (
+    <>
+      <PageHeader
+        eyebrow="Timetable"
+        title="Weekly schedule"
+        subtitle="Assign a course to each slot, then save your week."
+        actions={
+          <>
+            <Button variant="ghost" onClick={clear} loading={clearing} disabled={saving}>
+              <Trash2 size={16} /> Clear
+            </Button>
+            <Button onClick={save} loading={saving} disabled={clearing}>
+              <Save size={16} /> Save
+            </Button>
+          </>
+        }
+      />
+
+      {courses.length === 0 ? (
+        <EmptyState
+          icon={<BookOpen size={40} />}
+          title="No courses yet"
+          subtitle="Add courses first — then you can drop them into your weekly timetable."
+          action={
+            <Button onClick={() => navigate("/courses")}>
+              <BookOpen size={16} /> Add courses
+            </Button>
+          }
+        />
+      ) : (
+        <>
+          {/* Legend */}
+          <Card className="mb-5">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-muted">
+                <CalendarDays size={16} /> Courses
+              </h2>
+              <Badge variant="gold">{totalClasses} scheduled</Badge>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {courses.map((course) => (
+                <span
+                  key={course._id}
+                  className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 text-sm font-medium text-ink"
+                  style={{
+                    background: `color-mix(in srgb, ${course.color} 12%, transparent)`,
+                  }}
+                >
+                  <span
+                    className="h-2.5 w-2.5 rounded-full"
+                    style={{ background: course.color }}
+                    aria-hidden="true"
+                  />
+                  {course.name}
+                </span>
+              ))}
+            </div>
+          </Card>
+
+          {/* Grid */}
+          <Card className="p-0">
+            <div className="overflow-x-auto">
+              <div className="min-w-[820px]">
+                {/* Header row */}
+                <div
+                  className="grid border-b border-border"
+                  style={{ gridTemplateColumns: "110px repeat(5, minmax(140px, 1fr))" }}
+                >
+                  <div className="mono px-3 py-3 text-xs font-bold uppercase tracking-wide text-faint">
+                    Time
+                  </div>
+                  {DAYS.map((day) => (
+                    <div
+                      key={day}
+                      className="px-3 py-3 text-center text-sm font-bold text-ink"
+                    >
+                      {day}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Slot rows */}
+                {SLOTS.map((slot) => (
+                  <div
+                    key={slot}
+                    className="grid border-b border-border last:border-b-0"
+                    style={{ gridTemplateColumns: "110px repeat(5, minmax(140px, 1fr))" }}
+                  >
+                    <div className="mono flex items-center px-3 py-3 text-xs font-semibold text-muted">
+                      {slot}
+                    </div>
+                    {DAYS.map((day) => {
+                      const courseId = schedule[day]?.[slot] || "";
+                      const course = courseId ? courseById(courseId) : null;
+                      const color = course?.color;
+                      return (
+                        <div
+                          key={`${day}-${slot}`}
+                          className="border-l border-border p-2"
+                          style={
+                            color
+                              ? {
+                                  background: `color-mix(in srgb, ${color} 10%, transparent)`,
+                                  borderLeft: `3px solid ${color}`,
+                                }
+                              : undefined
+                          }
+                        >
+                          <Select
+                            aria-label={`Course for ${day} ${slot}`}
+                            value={courseId}
+                            onChange={(e) => setCell(day, slot, e.target.value)}
+                            className="py-2 text-sm"
+                          >
+                            <option value="">—</option>
+                            {courses.map((c) => (
+                              <option key={c._id} value={c._id}>
+                                {c.name}
+                              </option>
+                            ))}
+                          </Select>
+                          {course && (
+                            <div
+                              className="mt-1.5 truncate px-1 text-xs font-semibold"
+                              style={{ color }}
+                              title={course.name}
+                            >
+                              {course.name}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Card>
+        </>
+      )}
+    </>
+  );
+}
