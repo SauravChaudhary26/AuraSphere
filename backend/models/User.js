@@ -30,6 +30,24 @@ const UserSchema = new Schema(
     // Notification preferences
     notifyByEmail: { type: Boolean, default: true },
 
+    // Aura Store effect state.
+    // Daily activity streak (any productive aura earn counts; day boundary in
+    // config.dayTimezone). `freezes` is the Streak Freeze stock from the store.
+    streak: {
+      current: { type: Number, default: 0 },
+      longest: { type: Number, default: 0 },
+      lastDay: { type: String, default: null }, // "YYYY-MM-DD"
+      freezes: { type: Number, default: 0 },
+    },
+    // Double Aura power-up: earns are doubled until this instant.
+    boostUntil: { type: Date, default: null },
+    // Equipped cosmetics (catalog keys, validated against owned redemptions).
+    equipped: {
+      badge: { type: String, default: null },
+      frame: { type: String, default: null },
+      nameEffect: { type: String, default: null },
+    },
+
     // Password reset (hashed token; select:false)
     resetTokenHash: { type: String, select: false, default: null },
     resetTokenExpires: { type: Date, select: false, default: null },

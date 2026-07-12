@@ -10,6 +10,7 @@ import {
   cx,
 } from "../components/ui";
 import api from "../lib/http";
+import { badgeFor, frameClass, nameClass } from "../lib/cosmetics";
 import { handleError } from "../utils/ToastMessages";
 
 const PERIODS = [
@@ -90,10 +91,23 @@ export default function Leaderboard() {
           <div className="grid h-12 w-12 place-items-center rounded-xl bg-surface-2 text-primary">
             <Crown size={22} />
           </div>
-          <Avatar name={me.name} src={me.avatar} size={44} />
+          <Avatar name={me.name} src={me.avatar} size={44} frame={frameClass(me.equipped)} />
           <div className="min-w-0 flex-1">
             <div className="text-xs font-bold uppercase tracking-wide text-muted">Your rank</div>
-            <div className="truncate text-lg font-bold">{me.name || "You"}</div>
+            <div className="flex items-center gap-1.5">
+              <span className={cx("truncate text-lg font-bold", nameClass(me.equipped))}>
+                {me.name || "You"}
+              </span>
+              {badgeFor(me.equipped) && (
+                <span
+                  className="text-base leading-none"
+                  title={`${badgeFor(me.equipped).label} badge`}
+                  aria-label={`${badgeFor(me.equipped).label} badge`}
+                >
+                  {badgeFor(me.equipped).emoji}
+                </span>
+              )}
+            </div>
           </div>
           <div className="text-right">
             <div className="mono text-2xl font-extrabold leading-none text-ink">
@@ -119,6 +133,7 @@ export default function Leaderboard() {
           <ul className="divide-y divide-border">
             {top.map((row) => {
               const isMe = myId != null && String(row.id) === String(myId);
+              const badge = badgeFor(row.equipped);
               return (
                 <li
                   key={row.id ?? row.rank}
@@ -128,9 +143,20 @@ export default function Leaderboard() {
                   )}
                 >
                   <RankBadge rank={row.rank} />
-                  <Avatar name={row.name} src={row.avatar} size={40} />
+                  <Avatar name={row.name} src={row.avatar} size={40} frame={frameClass(row.equipped)} />
                   <div className="flex min-w-0 flex-1 items-center gap-2">
-                    <span className="truncate font-semibold text-ink">{row.name}</span>
+                    <span className={cx("truncate font-semibold", nameClass(row.equipped) || "text-ink")}>
+                      {row.name}
+                    </span>
+                    {badge && (
+                      <span
+                        className="text-base leading-none"
+                        title={`${badge.label} badge`}
+                        aria-label={`${badge.label} badge`}
+                      >
+                        {badge.emoji}
+                      </span>
+                    )}
                     {isMe && <Badge variant="gold">You</Badge>}
                   </div>
                   <span className="mono shrink-0 text-[15px] font-bold text-primary">

@@ -178,7 +178,7 @@ export default function RoomSettingsModal({ open, onClose, mode, initial, onSubm
               onChange={(v) => set("allowVideo", v)}
               label="Allow video"
             />
-            <p className="ml-[50px] text-xs text-faint">Participants can turn their camera on.</p>
+            <p className="ml-[54px] text-xs text-faint">Participants can turn their camera on.</p>
           </div>
           <div>
             <Switch
@@ -186,7 +186,7 @@ export default function RoomSettingsModal({ open, onClose, mode, initial, onSubm
               onChange={(v) => set("allowAudio", v)}
               label="Allow audio"
             />
-            <p className="ml-[50px] text-xs text-faint">Participants can unmute their mic.</p>
+            <p className="ml-[54px] text-xs text-faint">Participants can unmute their mic.</p>
           </div>
           <div>
             <Switch
@@ -194,7 +194,7 @@ export default function RoomSettingsModal({ open, onClose, mode, initial, onSubm
               onChange={(v) => set("chatEnabled", v)}
               label="Enable chat"
             />
-            <p className="ml-[50px] text-xs text-faint">Room-wide text chat.</p>
+            <p className="ml-[54px] text-xs text-faint">Room-wide text chat.</p>
           </div>
           <div>
             <Switch
@@ -202,7 +202,7 @@ export default function RoomSettingsModal({ open, onClose, mode, initial, onSubm
               onChange={(v) => set("chatFocusLock", v)}
               label="Deep focus — lock chat during focus"
             />
-            <p className="ml-[50px] text-xs text-faint">
+            <p className="ml-[54px] text-xs text-faint">
               Chat and reactions pause while a focus session runs.
             </p>
           </div>

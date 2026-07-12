@@ -53,14 +53,20 @@ const updateAssignment = async (req, res, next) => {
     await existing.save();
 
     // Award aura the first time an assignment is completed.
+    let award = null;
     if (!wasCompleted && existing.completed) {
-      await awardPoints(req.userId, config.points.assignmentCompleted, "assignment_completed", {
+      award = await awardPoints(req.userId, config.points.assignmentCompleted, "assignment_completed", {
         model: "Assignment",
         id: existing._id,
       });
     }
 
-    res.status(200).json(existing);
+    const body = existing.toObject();
+    if (award) {
+      body.awarded = award.amount;
+      body.boosted = award.boosted;
+    }
+    res.status(200).json(body);
   } catch (err) {
     next(err);
   }

@@ -232,11 +232,23 @@ export default function Timetable() {
                               : undefined
                           }
                         >
+                          {/* The select IS the cell label — colored per course,
+                              so nothing needs to repeat below it. */}
                           <Select
                             aria-label={`Course for ${day} ${slot}`}
+                            title={course?.name}
                             value={courseId}
                             onChange={(e) => setCell(day, slot, e.target.value)}
-                            className="py-2 text-sm"
+                            className={course ? "py-2 text-sm font-semibold" : "py-2 text-sm text-faint"}
+                            style={
+                              color
+                                ? {
+                                    color,
+                                    borderColor: `color-mix(in srgb, ${color} 45%, var(--border))`,
+                                    background: "var(--surface)",
+                                  }
+                                : undefined
+                            }
                           >
                             <option value="">—</option>
                             {courses.map((c) => (
@@ -245,15 +257,6 @@ export default function Timetable() {
                               </option>
                             ))}
                           </Select>
-                          {course && (
-                            <div
-                              className="mt-1.5 truncate px-1 text-xs font-semibold"
-                              style={{ color }}
-                              title={course.name}
-                            >
-                              {course.name}
-                            </div>
-                          )}
                         </div>
                       );
                     })}

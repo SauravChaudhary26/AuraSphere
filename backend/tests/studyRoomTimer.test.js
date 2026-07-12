@@ -154,7 +154,7 @@ describe('Study Room Timer Engine', () => {
 
     it('awards only users present at focus start AND still in the room', async () => {
       AuraTransaction.countDocuments.mockResolvedValue(0);
-      awardPoints.mockResolvedValue(120);
+      awardPoints.mockResolvedValue({ balance: 120, amount: config.points.studySessionCompleted, boosted: false });
       const emitToUser = jest.fn();
       const notifyCapReached = jest.fn();
       const engine = createTimerEngine(wireRealAwardPass(emitToUser, notifyCapReached));
@@ -172,6 +172,7 @@ describe('Study Room Timer Engine', () => {
       expect(emitToUser).toHaveBeenCalledWith('u1', 'aura:awarded', {
         amount: config.points.studySessionCompleted,
         newBalance: 120,
+        boosted: false,
         reason: 'study_session_completed',
       });
       expect(notifyCapReached).not.toHaveBeenCalled();

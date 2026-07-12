@@ -65,3 +65,35 @@
   --shadow: 0 1px 2px rgba(0,0,0,.4), 0 18px 40px -18px rgba(0,0,0,.7);
   --glow: 0 0 40px -6px rgba(240,180,41,.45); color-scheme: dark;
 }
+
+/* ----- Aura Store themes (unlocked via /store, applied like light/dark) ----- */
+
+/* Midnight — molten gold on deep-space blue. */
+:root[data-theme="midnight"] {
+  --ground: #070b16; --surface: #0c1224; --surface-2: #131c36; --ink: #e9eefb;
+  --muted: #96a2c4; --faint: #5d6a8f; --border: #1d2946; --primary: #f5c53d;
+  --primary-bright: #ffd968; --on-primary: #221a03; --jade: #2bd4b0; --success: #43c76a;
+  --warning: #f09a4a; --danger: #ef6f6f; --ring-track: #182342;
+  --shadow: 0 1px 2px rgba(0,0,0,.5), 0 18px 44px -16px rgba(3,8,26,.85);
+  --glow: 0 0 44px -6px rgba(245,197,61,.5); color-scheme: dark;
+}
+
+/* Sakura — cherry-blossom pinks, light and calm. */
+:root[data-theme="sakura"] {
+  --ground: #fdf3f6; --surface: #ffffff; --surface-2: #fbe6ee; --ink: #33202b;
+  --muted: #8c6b7a; --faint: #b898a6; --border: #f2d7e2; --primary: #d6336c;
+  --primary-bright: #e64980; --on-primary: #ffffff; --jade: #0ca678; --success: #37b24d;
+  --warning: #e8890c; --danger: #e03131; --ring-track: #f6dde7;
+  --shadow: 0 1px 2px rgba(51,32,43,.06), 0 8px 24px -12px rgba(214,51,108,.16);
+  --glow: 0 0 0 rgba(230,73,128,0); color-scheme: light;
+}
+
+/* Terminal — phosphor green on black, for matrix grinders. */
+:root[data-theme="terminal"] {
+  --ground: #040804; --surface: #0a130b; --surface-2: #101f13; --ink: #d4f7dc;
+  --muted: #7fb48c; --faint: #4d7a58; --border: #1c3322; --primary: #35d058;
+  --primary-bright: #57e878; --on-primary: #04240b; --jade: #2bd4b0; --success: #35d058;
+  --warning: #d0b135; --danger: #e96a6a; --ring-track: #14271a;
+  --shadow: 0 1px 2px rgba(0,0,0,.5), 0 18px 40px -18px rgba(0,0,0,.8);
+  --glow: 0 0 40px -6px rgba(53,208,88,.4); color-scheme: dark;
+}

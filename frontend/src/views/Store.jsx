@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
-import { Sparkles, ShoppingBag, Check, Zap, Palette } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useDispatch } from "react-redux";
+import { Sparkles, ShoppingBag, Check, Zap, Palette, Gift, Flame } from "lucide-react";
 import {
   PageHeader,
   Button,
@@ -10,12 +11,18 @@ import {
   LoadingScreen,
 } from "../components/ui";
 import api from "../lib/http";
+import { fetchPoints } from "../utils/redux/pointsSlice";
+import { invalidateOwnedItems } from "../lib/useOwnedItems";
+import { applyTheme, currentTheme } from "../lib/cosmetics";
+import { fireConfetti } from "../components/StudyRoom/confetti";
+import { useAuth } from "../contexts/AuthContext";
 import { handleError, handleSuccess } from "../utils/ToastMessages";
 
 /* Friendly labels + icons for the known categories; unknown ones fall back. */
 const CATEGORY_META = {
   "power-ups": { label: "Power-ups", icon: <Zap size={16} /> },
   cosmetics: { label: "Cosmetics", icon: <Palette size={16} /> },
+  fun: { label: "Fun & Goodies", icon: <Gift size={16} /> },
 };
 
 function categoryMeta(key) {
@@ -25,6 +32,16 @@ function categoryMeta(key) {
       icon: <ShoppingBag size={16} />,
     }
   );
+}
+
+/** "23h 12m" until a date, or null once it has passed. */
+function timeLeft(until) {
+  const ms = new Date(until).getTime() - Date.now();
+  if (ms <= 0) return null;
+  const h = Math.floor(ms / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  if (h <= 0 && m <= 0) return "<1m";
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
 }
 
 /* A gold pill showing the current Aura balance. */
@@ -47,11 +64,41 @@ function BalancePill({ balance }) {
   );
 }
 
-function StoreItemCard({ item, balance, onRedeem }) {
+/* Small status pills for streak / active boost. */
+function StatusPill({ children, tone = "var(--warning)", title }) {
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold"
+      style={{ color: tone, background: `color-mix(in srgb, ${tone} 14%, transparent)` }}
+      title={title}
+    >
+      {children}
+    </span>
+  );
+}
+
+function StoreItemCard({ item, balance, themeNow, busyKey, onRedeem, onEquip, onApplyTheme }) {
   const owned = !!item.owned;
+  const oneTime = item.kind !== "consumable";
   const affordable = balance >= item.cost;
   const short = Math.max(0, item.cost - balance);
-  const disabled = owned || !affordable;
+  const busy = busyKey === item.key;
+
+  const boostLeft = item.activeUntil ? timeLeft(item.activeUntil) : null;
+  const themeId = item.effect?.theme;
+  const themeApplied = themeId && themeNow === themeId;
+
+  // Primary (purchase) button: consumables can always be re-bought (until a
+  // server-side cap), one-time items only before they're owned.
+  const showBuy = !oneTime || !owned;
+  const buyDisabled = !item.purchasable || !affordable;
+  const buyLabel = !item.purchasable
+    ? item.note || "Unavailable"
+    : !affordable
+    ? `Need ${short.toLocaleString()} more`
+    : owned && !oneTime
+    ? "Redeem again"
+    : "Redeem";
 
   return (
     <Card className="flex flex-col">
@@ -63,11 +110,21 @@ function StoreItemCard({ item, balance, onRedeem }) {
         >
           {item.icon || "✨"}
         </div>
-        {owned && (
-          <Badge variant="jade">
-            <Check size={13} /> Owned
-          </Badge>
-        )}
+        <div className="flex flex-col items-end gap-1.5">
+          {owned && oneTime && (
+            <Badge variant="jade">
+              <Check size={13} /> Owned
+            </Badge>
+          )}
+          {item.key === "streak_freeze" && item.stock > 0 && (
+            <Badge variant="jade">❄️ ×{item.stock} stocked</Badge>
+          )}
+          {item.key === "double_aura" && boostLeft && (
+            <Badge variant="gold">⚡ Active · {boostLeft} left</Badge>
+          )}
+          {item.equipped && <Badge variant="gold">Equipped</Badge>}
+          {themeApplied && <Badge variant="gold">In use</Badge>}
+        </div>
       </div>
 
       <h3 className="mt-4 text-base font-bold text-ink">{item.name}</h3>
@@ -75,7 +132,7 @@ function StoreItemCard({ item, balance, onRedeem }) {
         <p className="mt-1 flex-1 text-sm text-muted">{item.description}</p>
       )}
 
-      <div className="mt-4 flex items-center justify-between gap-3">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <span className="inline-flex items-center gap-1.5 text-primary">
           <Sparkles size={15} />
           <span className="mono text-lg font-extrabold leading-none">
@@ -83,32 +140,140 @@ function StoreItemCard({ item, balance, onRedeem }) {
           </span>
         </span>
 
-        <Button
-          size="sm"
-          variant={disabled ? "subtle" : "primary"}
-          disabled={disabled}
-          onClick={() => onRedeem(item)}
-          aria-label={owned ? `${item.name} already owned` : `Redeem ${item.name} for ${item.cost} Aura`}
-        >
-          {owned ? "Owned" : affordable ? "Redeem" : `Need ${short.toLocaleString()} more`}
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* Secondary action for owned cosmetics: equip / apply theme. */}
+          {owned && item.slot && (
+            <Button
+              size="sm"
+              variant={item.equipped ? "subtle" : "ghost"}
+              loading={busy}
+              onClick={() => onEquip(item, item.equipped ? null : item.key)}
+              aria-label={item.equipped ? `Unequip ${item.name}` : `Equip ${item.name}`}
+            >
+              {item.equipped ? (
+                <>
+                  <Check size={14} /> Equipped
+                </>
+              ) : (
+                "Equip"
+              )}
+            </Button>
+          )}
+          {owned && themeId && (
+            <Button
+              size="sm"
+              variant={themeApplied ? "subtle" : "ghost"}
+              disabled={themeApplied}
+              onClick={() => onApplyTheme(themeId)}
+              aria-label={`Apply the ${item.name}`}
+            >
+              {themeApplied ? (
+                <>
+                  <Check size={14} /> Applied
+                </>
+              ) : (
+                "Apply"
+              )}
+            </Button>
+          )}
+
+          {showBuy && (
+            <Button
+              size="sm"
+              variant={buyDisabled ? "subtle" : "primary"}
+              disabled={buyDisabled}
+              onClick={() => onRedeem(item)}
+              aria-label={`Redeem ${item.name} for ${item.cost} Aura`}
+            >
+              {buyLabel}
+            </Button>
+          )}
+        </div>
       </div>
     </Card>
   );
 }
 
+/* The Mystery Box reveal: shake… then pop the prize. */
+function MysteryReveal({ reveal, onClose, onAgain, canAfford }) {
+  const [shown, setShown] = useState(false);
+
+  useEffect(() => {
+    if (!reveal) return undefined;
+    setShown(false);
+    const t = setTimeout(() => {
+      setShown(true);
+      if (reveal.prize >= 150) fireConfetti();
+    }, 1100);
+    return () => clearTimeout(t);
+  }, [reveal]);
+
+  if (!reveal) return null;
+  return (
+    <Modal open onClose={shown ? onClose : undefined} title="Mystery Box" size="sm">
+      <div className="flex flex-col items-center gap-4 py-4 text-center">
+        {!shown ? (
+          <>
+            <div className="animate-box-shake text-[72px] leading-none" aria-hidden="true">
+              🎁
+            </div>
+            <p className="text-sm text-muted">Shaking it a little…</p>
+          </>
+        ) : (
+          <>
+            <div className="animate-prize-pop text-[56px] leading-none" aria-hidden="true">
+              {reveal.prize >= 400 ? "🌟" : reveal.prize >= 150 ? "💰" : "✨"}
+            </div>
+            <div className="animate-prize-pop">
+              <div className="mono text-3xl font-extrabold text-primary">+{reveal.prize}</div>
+              <div className="mt-1 text-sm text-muted">
+                {reveal.prize >= 400
+                  ? "JACKPOT! The box was feeling generous."
+                  : reveal.prize >= 150
+                  ? "Nice pull — that beats the ticket price!"
+                  : "The box giveth… modestly."}
+              </div>
+            </div>
+            <div className="mt-2 flex gap-2">
+              <Button variant="ghost" onClick={onClose}>
+                Done
+              </Button>
+              <Button onClick={onAgain} disabled={!canAfford}>
+                <Gift size={15} /> Open another
+              </Button>
+            </div>
+          </>
+        )}
+      </div>
+    </Modal>
+  );
+}
+
 export default function Store() {
+  const dispatch = useDispatch();
+  const { refresh: refreshAuth } = useAuth();
   const [balance, setBalance] = useState(0);
+  const [streak, setStreak] = useState(null);
+  const [boost, setBoost] = useState(null);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
   const [purchasing, setPurchasing] = useState(false);
+  const [busyKey, setBusyKey] = useState(null);
+  const [reveal, setReveal] = useState(null);
+  const [themeNow, setThemeNow] = useState(currentTheme());
+  const mysteryCost = useRef(100);
 
   const load = useCallback(async () => {
     try {
       const { data } = await api.get("/store");
       setBalance(data?.balance ?? 0);
-      setItems(Array.isArray(data?.items) ? data.items : []);
+      setStreak(data?.streak ?? null);
+      setBoost(data?.boost ?? null);
+      const list = Array.isArray(data?.items) ? data.items : [];
+      setItems(list);
+      const box = list.find((i) => i.key === "mystery_box");
+      if (box) mysteryCost.current = box.cost;
     } catch (err) {
       handleError("Couldn't load the Aura Store");
     } finally {
@@ -120,20 +285,65 @@ export default function Store() {
     load();
   }, [load]);
 
+  const afterPurchase = (data) => {
+    if (typeof data?.balance === "number") setBalance(data.balance);
+    invalidateOwnedItems();
+    dispatch(fetchPoints());
+    load();
+  };
+
+  const buy = async (item) => {
+    const { data } = await api.post("/store/purchase", { itemKey: item.key });
+    afterPurchase(data);
+    return data;
+  };
+
   const confirmPurchase = async () => {
     if (!selected) return;
     setPurchasing(true);
     try {
-      const { data } = await api.post("/store/purchase", { itemKey: selected.key });
-      handleSuccess(data?.message || `Redeemed ${selected.name}!`);
-      if (typeof data?.balance === "number") setBalance(data.balance);
+      const data = await buy(selected);
+      if (selected.key === "mystery_box") {
+        setReveal({ prize: data?.prize ?? 0 });
+      } else {
+        handleSuccess(data?.message || `Redeemed ${selected.name}!`);
+      }
       setSelected(null);
-      load();
     } catch (err) {
       handleError(err?.response?.data?.message || "Couldn't complete that purchase");
     } finally {
       setPurchasing(false);
     }
+  };
+
+  const openAnotherBox = async () => {
+    try {
+      const data = await buy({ key: "mystery_box" });
+      setReveal({ prize: data?.prize ?? 0, at: Date.now() });
+    } catch (err) {
+      setReveal(null);
+      handleError(err?.response?.data?.message || "Couldn't open another box");
+    }
+  };
+
+  const equip = async (item, itemKey) => {
+    setBusyKey(item.key);
+    try {
+      await api.post("/store/equip", { slot: item.slot, itemKey });
+      handleSuccess(itemKey ? `${item.name} equipped` : `${item.name} unequipped`);
+      refreshAuth(); // profile header reads equipped off the auth user
+      await load();
+    } catch (err) {
+      handleError(err?.response?.data?.message || "Couldn't update your cosmetics");
+    } finally {
+      setBusyKey(null);
+    }
+  };
+
+  const onApplyTheme = (themeId) => {
+    applyTheme(themeId);
+    setThemeNow(themeId);
+    handleSuccess("Theme applied ✨");
   };
 
   if (loading) return <LoadingScreen label="Opening the Aura Store…" />;
@@ -144,19 +354,42 @@ export default function Store() {
     (acc[key] = acc[key] || []).push(item);
     return acc;
   }, {});
-  const order = ["power-ups", "cosmetics"];
+  const order = ["power-ups", "cosmetics", "fun"];
   const categoryKeys = [
     ...order.filter((k) => groups[k]),
     ...Object.keys(groups).filter((k) => !order.includes(k)),
   ];
+
+  const boostLeft = boost?.active && boost.until ? timeLeft(boost.until) : null;
 
   return (
     <>
       <PageHeader
         eyebrow="Rewards"
         title="Aura Store"
-        subtitle="Spend the Aura you've earned on power-ups and cosmetics."
-        actions={<BalancePill balance={balance} />}
+        subtitle="Spend the Aura you've earned on power-ups, cosmetics and fun."
+        actions={
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {streak && (
+              <StatusPill
+                tone="var(--warning)"
+                title={
+                  streak.earnedToday
+                    ? "You've kept your streak alive today"
+                    : "Earn Aura today to keep your streak"
+                }
+              >
+                <Flame size={15} /> {streak.current} day{streak.current === 1 ? "" : "s"}
+              </StatusPill>
+            )}
+            {boostLeft && (
+              <StatusPill tone="var(--primary)" title="Double Aura is active">
+                <Zap size={15} /> 2× · {boostLeft}
+              </StatusPill>
+            )}
+            <BalancePill balance={balance} />
+          </div>
+        }
       />
 
       {items.length === 0 ? (
@@ -188,7 +421,11 @@ export default function Store() {
                       key={item.key}
                       item={item}
                       balance={balance}
+                      themeNow={themeNow}
+                      busyKey={busyKey}
                       onRedeem={setSelected}
+                      onEquip={equip}
+                      onApplyTheme={onApplyTheme}
                     />
                   ))}
                 </div>
@@ -239,6 +476,13 @@ export default function Store() {
           </div>
         )}
       </Modal>
+
+      <MysteryReveal
+        reveal={reveal}
+        onClose={() => setReveal(null)}
+        onAgain={openAnotherBox}
+        canAfford={balance >= mysteryCost.current}
+      />
     </>
   );
 }

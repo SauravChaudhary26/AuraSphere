@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -9,6 +10,67 @@ import Logo, { LogoMark } from "../Logo";
 import { ThemeToggle, Avatar } from "../ui";
 import { useAuth } from "../../contexts/AuthContext";
 import { fetchPoints } from "../../utils/redux/pointsSlice";
+import { fireConfetti } from "../StudyRoom/confetti";
+
+/* Full-screen "here's your Aura" moment: confetti + an eased count-up.
+   Sits at z-40 so the confetti canvas (z-50) rains OVER the dim layer. */
+function AuraCelebration({ aura, onClose }) {
+  const [display, setDisplay] = useState(0);
+
+  useEffect(() => {
+    let raf;
+    const start = performance.now();
+    const duration = 1300;
+    const tick = (now) => {
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      setDisplay(Math.round(aura * eased));
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [aura]);
+
+  useEffect(() => {
+    fireConfetti();
+    const encore = setTimeout(() => fireConfetti({ light: true }), 950);
+    const autoClose = setTimeout(onClose, 4500);
+    const onKey = (e) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    return () => {
+      clearTimeout(encore);
+      clearTimeout(autoClose);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [onClose]);
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-40 flex items-center justify-center bg-black/45 backdrop-blur-sm"
+      role="dialog"
+      aria-label="Your current Aura"
+      onMouseDown={onClose}
+    >
+      <div className="animate-prize-pop flex flex-col items-center gap-3 text-center">
+        <Sparkles size={42} style={{ color: "var(--primary-bright)" }} aria-hidden="true" />
+        <div
+          className="mono text-7xl font-extrabold leading-none sm:text-8xl"
+          style={{
+            color: "var(--primary-bright)",
+            textShadow: "0 0 48px color-mix(in srgb, var(--primary) 70%, transparent)",
+          }}
+        >
+          {display.toLocaleString()}
+        </div>
+        <div className="text-sm font-bold uppercase tracking-[0.32em] text-white/85">
+          Total Aura
+        </div>
+        <div className="mt-1 text-xs text-white/55">earned with pure focus ✨</div>
+      </div>
+    </div>,
+    document.body
+  );
+}
 
 const NAV = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -43,10 +105,16 @@ function NavItem({ to, label, icon: Icon, onClick }) {
 
 export default function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [celebrating, setCelebrating] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const aura = useSelector((s) => s.points.total);
+
+  const celebrate = () => {
+    dispatch(fetchPoints()); // freshen the number mid-animation if it moved
+    setCelebrating(true);
+  };
 
   useEffect(() => {
     dispatch(fetchPoints());
@@ -107,13 +175,16 @@ export default function AppLayout() {
               <LogoMark size={26} />
             </div>
             <div className="flex-1" />
-            <NavLink
-              to="/store"
-              className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold"
+            <button
+              type="button"
+              onClick={celebrate}
+              aria-label="Show my Aura"
+              title="Show my Aura"
+              className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold transition hover:brightness-110 active:scale-95"
               style={{ color: "var(--primary)", background: "color-mix(in srgb, var(--primary) 14%, transparent)" }}
             >
               <Sparkles size={15} /> <span className="mono">{Number(aura || 0).toLocaleString()}</span>
-            </NavLink>
+            </button>
             <ThemeToggle />
             <NavLink to="/profile" aria-label="Profile">
               <Avatar name={user?.name} src={user?.avatar} size={34} />
@@ -125,6 +196,10 @@ export default function AppLayout() {
           <Outlet />
         </main>
       </div>
+
+      {celebrating && (
+        <AuraCelebration aura={Number(aura || 0)} onClose={() => setCelebrating(false)} />
+      )}
     </div>
   );
 }

@@ -85,10 +85,10 @@ exports.completeChallenge = async (req, res, next) => {
     }
 
     challenge.status = "completed";
-    let aura;
+    let award = null;
     if (!challenge.pointsAwarded) {
       challenge.pointsAwarded = true;
-      aura = await awardPoints(req.userId, config.points.challengeCompleted, "challenge_completed", {
+      award = await awardPoints(req.userId, config.points.challengeCompleted, "challenge_completed", {
         model: "Challenge",
         id: challenge._id,
       });
@@ -97,8 +97,9 @@ exports.completeChallenge = async (req, res, next) => {
     res.status(200).json({
       message: "Challenge completed",
       challenge,
-      awarded: challenge.pointsAwarded ? config.points.challengeCompleted : 0,
-      aura,
+      awarded: award ? award.amount : 0,
+      boosted: award ? award.boosted : false,
+      aura: award ? award.balance : undefined,
     });
   } catch (err) {
     next(err);

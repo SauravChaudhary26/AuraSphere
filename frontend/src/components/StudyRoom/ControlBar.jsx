@@ -1,5 +1,6 @@
 import { DoorOpen, Mic, MicOff, Video, VideoOff, Volume2 } from "lucide-react";
 import { Button, Card, Select, cx } from "../ui";
+import { AMBIENT_OPTIONS } from "./useAmbientSound";
 
 function RoundToggle({ on, disabled, onClick, title, children }) {
   return (
@@ -31,6 +32,7 @@ export default function ControlBar({
   onAmbientChange,
   ambientVolume,
   onAmbientVolume,
+  ownsSoundPack,
   onLeave,
   children,
 }) {
@@ -60,12 +62,18 @@ export default function ControlBar({
         value={ambient}
         onChange={(e) => onAmbientChange(e.target.value)}
         aria-label="Ambient sound"
-        className="max-w-[130px] px-2.5 py-1.5 text-sm"
+        title={ownsSoundPack ? undefined : "🔒 sounds unlock with the Focus Sound Pack (Aura Store)"}
+        className="max-w-[150px] px-2.5 py-1.5 text-sm"
       >
         <option value="off">Off</option>
-        <option value="rain">Rain 🌧</option>
-        <option value="waves">Waves 🌊</option>
-        <option value="deep">Deep 🎧</option>
+        {AMBIENT_OPTIONS.map((o) => {
+          const locked = o.premium && !ownsSoundPack;
+          return (
+            <option key={o.value} value={o.value} disabled={locked}>
+              {locked ? `🔒 ${o.label}` : o.label}
+            </option>
+          );
+        })}
       </Select>
       {ambient !== "off" && (
         <input

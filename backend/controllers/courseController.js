@@ -1,10 +1,12 @@
 const Course = require("../models/course.js");
 
+const isHexColor = (v) => typeof v === "string" && /^#[0-9a-fA-F]{6}$/.test(v);
+
 // Fetch all courses for a user
 const getCourses = async (req, res) => {
     const userId = req.userId;
     try {
-        const courses = await Course.find({ userId }).select("name _id");
+        const courses = await Course.find({ userId }).select("name color _id");
         res.status(200).json(courses);
     } catch (error) {
         res.status(500).json({ message: "Error fetching courses" });
@@ -13,9 +15,8 @@ const getCourses = async (req, res) => {
 
 // Add a course for a user
 const addCourse = async (req, res) => {
-    //  console.log(req.body);
     const userId = req.userId;
-    const { name } = req.body;
+    const { name, color } = req.body;
     if (!userId || !name)
         return res.status(400).json({ message: "Missing data" });
 
@@ -25,7 +26,11 @@ const addCourse = async (req, res) => {
         if (existingCourse)
             return res.status(400).json({ message: "Course already added" });
 
-        const newCourse = await Course.create({ userId, name });
+        const newCourse = await Course.create({
+            userId,
+            name,
+            ...(isHexColor(color) ? { color } : {}),
+        });
         res.status(201).json(newCourse);
     } catch (error) {
         res.status(500).json({ message: "Error adding course" });

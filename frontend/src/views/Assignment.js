@@ -16,6 +16,9 @@ import {
 } from "../components/ui";
 import api from "../lib/http";
 import { formatDate, daysUntil } from "../utils/aura";
+import useOwnedItems from "../lib/useOwnedItems";
+import { fireConfetti } from "../components/StudyRoom/confetti";
+import { playChime } from "../components/StudyRoom/useAmbientSound";
 import { handleError, handleSuccess } from "../utils/ToastMessages";
 
 const EMPTY_FORM = { title: "", course: "", description: "", deadline: "" };
@@ -113,6 +116,7 @@ function Group({ title, tone, items, busyId, ...rowProps }) {
 }
 
 export default function Assignment() {
+  const owned = useOwnedItems();
   const [assignments, setAssignments] = useState([]);
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -199,7 +203,13 @@ export default function Assignment() {
       if (data && typeof data === "object") {
         setAssignments((list) => list.map((a) => (a._id === id ? { ...a, ...data } : a)));
       }
-      if (data?.completed && !wasCompleted) handleSuccess("+15 Aura");
+      if (data?.completed && !wasCompleted) {
+        handleSuccess(`+${data.awarded ?? 15} Aura${data.boosted ? " ⚡ (2× boost)" : ""}`);
+        if (owned.has("celebration_pack")) {
+          fireConfetti();
+          playChime("focus");
+        }
+      }
     } catch (err) {
       setAssignments((list) =>
         list.map((a) => (a._id === id ? { ...a, completed: wasCompleted } : a))

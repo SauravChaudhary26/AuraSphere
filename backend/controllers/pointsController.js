@@ -1,5 +1,7 @@
 const { getBalance, earnedSince } = require("../services/pointsService");
+const { effectiveStreak } = require("../services/streakService");
 const AuraTransaction = require("../models/AuraTransaction");
+const User = require("../models/User");
 
 // Current aura balance.
 const getPoints = async (req, res, next) => {
@@ -19,13 +21,23 @@ const getPointsSummary = async (req, res, next) => {
     const startOfWeek = new Date(startOfDay);
     startOfWeek.setDate(startOfDay.getDate() - startOfDay.getDay());
 
-    const [total, today, week] = await Promise.all([
+    const [total, today, week, user] = await Promise.all([
       getBalance(req.userId),
       earnedSince(req.userId, startOfDay),
       earnedSince(req.userId, startOfWeek),
+      User.findById(req.userId).select("streak boostUntil").lean(),
     ]);
 
-    res.status(200).json({ total, today, week });
+    const boostUntil =
+      user?.boostUntil && new Date(user.boostUntil) > new Date() ? user.boostUntil : null;
+
+    res.status(200).json({
+      total,
+      today,
+      week,
+      streak: effectiveStreak(user?.streak),
+      boost: { active: !!boostUntil, until: boostUntil },
+    });
   } catch (err) {
     next(err);
   }

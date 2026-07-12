@@ -86,7 +86,7 @@ const completeGoal = async (req, res, next) => {
     goal.completedAt = new Date();
     await goal.save();
 
-    const aura = await awardPoints(req.userId, config.points.goalCompleted, "goal_completed", {
+    const award = await awardPoints(req.userId, config.points.goalCompleted, "goal_completed", {
       model: "Goal",
       id: goal._id,
     });
@@ -94,8 +94,9 @@ const completeGoal = async (req, res, next) => {
     res.status(200).json({
       message: "Goal completed successfully",
       goal,
-      awarded: config.points.goalCompleted,
-      aura,
+      awarded: award.amount,
+      boosted: award.boosted,
+      aura: award.balance,
     });
   } catch (err) {
     next(err);

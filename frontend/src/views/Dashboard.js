@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useDispatch } from "react-redux";
-import { Plus, Target, Sparkles, Trophy, CalendarClock } from "lucide-react";
+import { Plus, Target, Sparkles, Trophy, CalendarClock, Flame, Zap } from "lucide-react";
 import { PageHeader, Button, Card, StatTile, EmptyState, LoadingScreen } from "../components/ui";
 import AuraRing from "../components/ui/AuraRing";
 import GoalCard from "../components/Objectives/GoalCard";
@@ -9,11 +9,24 @@ import api from "../lib/http";
 import { useAuth } from "../contexts/AuthContext";
 import { fetchPoints } from "../utils/redux/pointsSlice";
 import { levelFromAura } from "../utils/aura";
+import useOwnedItems from "../lib/useOwnedItems";
+import { fireConfetti } from "../components/StudyRoom/confetti";
+import { playChime } from "../components/StudyRoom/useAmbientSound";
 import { handleError, handleSuccess } from "../utils/ToastMessages";
+
+/** "23h left" for the boost tile. */
+function boostTimeLeft(until) {
+  const ms = new Date(until).getTime() - Date.now();
+  if (ms <= 0) return null;
+  const h = Math.floor(ms / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  return h > 0 ? `${h}h ${m}m left` : `${Math.max(m, 1)}m left`;
+}
 
 export default function Dashboard() {
   const dispatch = useDispatch();
   const { user } = useAuth();
+  const owned = useOwnedItems();
   const [goals, setGoals] = useState([]);
   const [summary, setSummary] = useState({ total: 0, today: 0, week: 0 });
   const [rank, setRank] = useState(null);
@@ -64,7 +77,13 @@ export default function Dashboard() {
     setGoals((gs) => gs.filter((g) => g._id !== id));
     try {
       const { data } = await api.patch(`/goals/${id}/complete`);
-      if (data.awarded) handleSuccess(`Goal complete! +${data.awarded} Aura`);
+      if (data.awarded) {
+        handleSuccess(`Goal complete! +${data.awarded} Aura${data.boosted ? " ⚡ (2× boost)" : ""}`);
+      }
+      if (owned.has("celebration_pack")) {
+        fireConfetti();
+        playChime("focus");
+      }
       refreshAura();
     } catch (err) { handleError("Couldn't complete goal"); load(); }
   };
@@ -103,6 +122,31 @@ export default function Dashboard() {
           <StatTile icon={<Target size={14} />} label="Active goals" value={goals.length} tone="jade" />
           <StatTile icon={<Trophy size={14} />} label="Campus rank" value={rank ? `#${rank}` : "—"} tone="warning" />
           <StatTile icon={<CalendarClock size={14} />} label="This week" value={`+${summary.week}`} tone="jade" />
+          <StatTile
+            icon={<Flame size={14} />}
+            label="Streak"
+            value={`${summary.streak?.current ?? 0}d`}
+            tone="warning"
+            delta={
+              (summary.streak?.earnedToday
+                ? "banked today"
+                : (summary.streak?.current ?? 0) > 0
+                ? "earn today to keep it"
+                : "complete a goal to start") +
+              ((summary.streak?.freezes ?? 0) > 0 ? ` · ❄️ ×${summary.streak.freezes}` : "")
+            }
+            deltaTone={summary.streak?.earnedToday ? "up" : "muted"}
+          />
+          {summary.boost?.active && boostTimeLeft(summary.boost.until) && (
+            <StatTile
+              icon={<Zap size={14} />}
+              label="Double Aura"
+              value="2×"
+              tone="gold"
+              delta={boostTimeLeft(summary.boost.until)}
+              deltaTone="up"
+            />
+          )}
         </div>
       </div>
 

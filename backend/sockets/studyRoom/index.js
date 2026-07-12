@@ -1,5 +1,6 @@
 const { verifyToken } = require("../../utils/token");
 const User = require("../../models/User");
+const Redemption = require("../../models/Redemption");
 const store = require("./roomStore");
 const { createTimerEngine } = require("./timerEngine");
 const { runAwardPass } = require("./awards");
@@ -75,6 +76,19 @@ function registerStudyRoomHandlers(io) {
       return { name: user?.name || "Student", avatar: user?.avatar || null };
     } catch {
       return { name: "Student", avatar: null };
+    }
+  }
+
+  // Store perks are loaded once per room entry (cheap indexed lookup) and
+  // cached on the socket; a mid-session purchase applies on the next join.
+  async function loadPerks(socket) {
+    try {
+      socket.data.premiumReactions = !!(await Redemption.exists({
+        userId: socket.data.userId,
+        itemKey: "reaction_pack",
+      }));
+    } catch {
+      socket.data.premiumReactions = socket.data.premiumReactions || false;
     }
   }
 
@@ -155,7 +169,10 @@ function registerStudyRoomHandlers(io) {
         }
         leaveCurrentRoom(socket);
         const settings = sanitizeSettings(payload);
-        const profile = await fetchProfile(socket.data.userId);
+        const [profile] = await Promise.all([
+          fetchProfile(socket.data.userId),
+          loadPerks(socket),
+        ]);
         // Both caps re-checked after the await — parallel creates raced past
         // the first check while the profile fetch was in flight.
         if (
@@ -205,7 +222,10 @@ function registerStudyRoomHandlers(io) {
           return ack({ ok: true, state: store.serializeState(room, socket.id) });
         }
         if (socket.data.roomId) leaveCurrentRoom(socket);
-        const profile = await fetchProfile(socket.data.userId);
+        const [profile] = await Promise.all([
+          fetchProfile(socket.data.userId),
+          loadPerks(socket),
+        ]);
         // The room may have been ended/GC'd while the profile fetch was in
         // flight — joining an orphaned room object would ack ok into a ghost.
         if (room.deleted || store.getRoom(code) !== room) {
@@ -380,7 +400,7 @@ function registerStudyRoomHandlers(io) {
         const room = getMyRoom(socket);
         const me = room && room.participants.get(socket.id);
         if (!me) return ack({ ok: false, error: "You're not in a room" });
-        if (!isValidReaction(payload.emoji)) {
+        if (!isValidReaction(payload.emoji, socket.data.premiumReactions)) {
           return ack({ ok: false, error: "Invalid reaction" });
         }
         if (room.settings.chatFocusLock && room.timer.phase === "focus") {

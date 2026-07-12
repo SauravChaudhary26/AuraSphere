@@ -1,9 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const { listStore, purchase, myRedemptions } = require("../controllers/storeController");
+const { listStore, purchase, equip, myRedemptions } = require("../controllers/storeController");
 
 router.get("/", listStore);
 router.post("/purchase", purchase);
+router.post("/equip", equip);
 router.get("/redemptions", myRedemptions);
 
 module.exports = router;

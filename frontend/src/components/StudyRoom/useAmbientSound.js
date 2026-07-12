@@ -1,5 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+/** All soundscapes. `premium` ones unlock with the store Focus Sound Pack. */
+export const AMBIENT_OPTIONS = [
+  { value: "rain", label: "Rain 🌧" },
+  { value: "waves", label: "Waves 🌊" },
+  { value: "deep", label: "Deep 🎧" },
+  { value: "fire", label: "Fireplace 🔥", premium: true },
+  { value: "forest", label: "Forest 🌲", premium: true },
+  { value: "night", label: "Night 🦗", premium: true },
+];
+
 let ambientCtx = null;
 const bufferCache = {};
 
@@ -40,6 +50,7 @@ function buildGraph(ctx, kind, volume) {
   const master = ctx.createGain();
   const nodes = [master];
   const sources = [];
+  const timers = []; // one-shot schedulers (crackles/chirps); cleared on stop
   const src = ctx.createBufferSource();
   src.loop = true;
   let base = 0.35;
@@ -77,6 +88,138 @@ function buildGraph(ctx, kind, volume) {
     sources.push(lfo);
     nodes.push(lp, swell, lfoGain);
     base = 0.5;
+  } else if (kind === "fire") {
+    // Fireplace (premium): warm rumble + a random crackle scheduler.
+    src.buffer = getNoiseBuffer(ctx, "brown");
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = 380;
+    const flick = ctx.createOscillator();
+    flick.frequency.value = 7.3; // flame flicker wobble
+    const flickGain = ctx.createGain();
+    flickGain.gain.value = 0.05;
+    flick.connect(flickGain).connect(master.gain);
+    flick.start();
+    src.connect(lp).connect(master);
+    sources.push(flick);
+    nodes.push(lp, flickGain);
+    base = 0.55;
+
+    const scheduleCrackle = () => {
+      timers[0] = setTimeout(() => {
+        try {
+          const c = ctx.createBufferSource();
+          c.buffer = getNoiseBuffer(ctx, "white");
+          const hp = ctx.createBiquadFilter();
+          hp.type = "highpass";
+          hp.frequency.value = 1600 + Math.random() * 1800;
+          const g = ctx.createGain();
+          const t = ctx.currentTime;
+          const dur = 0.02 + Math.random() * 0.06;
+          g.gain.setValueAtTime(0.25 + Math.random() * 0.45, t);
+          g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+          c.connect(hp).connect(g).connect(master);
+          c.start(t, Math.random() * 1.5, dur + 0.05);
+        } catch {
+          /* context torn down mid-schedule */
+        }
+        scheduleCrackle();
+      }, 120 + Math.random() * 650);
+    };
+    scheduleCrackle();
+  } else if (kind === "forest") {
+    // Forest (premium): soft wind swell + occasional bird chirps.
+    src.buffer = getNoiseBuffer(ctx, "brown");
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = 520;
+    const swell = ctx.createGain();
+    swell.gain.value = 0.65;
+    const lfo = ctx.createOscillator();
+    lfo.frequency.value = 0.06;
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 0.25;
+    lfo.connect(lfoGain).connect(swell.gain);
+    lfo.start();
+    src.connect(lp).connect(swell).connect(master);
+    sources.push(lfo);
+    nodes.push(lp, swell, lfoGain);
+    base = 0.45;
+
+    const scheduleChirp = () => {
+      timers[0] = setTimeout(() => {
+        try {
+          const osc = ctx.createOscillator();
+          const g = ctx.createGain();
+          const pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+          if (pan) pan.pan.value = Math.random() * 1.2 - 0.6;
+          osc.type = "sine";
+          const t = ctx.currentTime;
+          const f0 = 2100 + Math.random() * 900;
+          const notes = 2 + ((Math.random() * 2) | 0);
+          g.gain.setValueAtTime(0, t);
+          for (let n = 0; n < notes; n++) {
+            const tn = t + n * (0.13 + Math.random() * 0.07);
+            osc.frequency.setValueAtTime(f0 * (0.95 + Math.random() * 0.1), tn);
+            osc.frequency.exponentialRampToValueAtTime(f0 * (1.2 + Math.random() * 0.2), tn + 0.06);
+            g.gain.setValueAtTime(0, tn);
+            g.gain.linearRampToValueAtTime(0.1 + Math.random() * 0.06, tn + 0.02);
+            g.gain.exponentialRampToValueAtTime(0.001, tn + 0.11);
+          }
+          const end = t + notes * 0.22 + 0.1;
+          if (pan) osc.connect(g).connect(pan).connect(master);
+          else osc.connect(g).connect(master);
+          osc.start(t);
+          osc.stop(end);
+        } catch {
+          /* context torn down mid-schedule */
+        }
+        scheduleChirp();
+      }, 2800 + Math.random() * 5500);
+    };
+    scheduleChirp();
+  } else if (kind === "night") {
+    // Night (premium): cricket chorus over a faint low bed.
+    src.buffer = getNoiseBuffer(ctx, "brown");
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = 260;
+    const bed = ctx.createGain();
+    bed.gain.value = 0.4;
+    src.connect(lp).connect(bed).connect(master);
+    nodes.push(lp, bed);
+
+    // Two detuned carriers, pulsed at ~28Hz (chirp) inside ~1Hz bursts.
+    const level = ctx.createGain();
+    level.gain.value = 0.06;
+    const chirpGate = ctx.createGain();
+    chirpGate.gain.value = 0.5;
+    const burstGate = ctx.createGain();
+    burstGate.gain.value = 0.5;
+    for (const f of [4150, 4480]) {
+      const osc = ctx.createOscillator();
+      osc.type = "sine";
+      osc.frequency.value = f;
+      osc.connect(chirpGate);
+      osc.start();
+      sources.push(osc);
+    }
+    const mkGate = (target, freq) => {
+      const lfo = ctx.createOscillator();
+      lfo.type = "square";
+      lfo.frequency.value = freq;
+      const g = ctx.createGain();
+      g.gain.value = 0.5; // square −1..1 → gate 0..1 around the 0.5 base
+      lfo.connect(g).connect(target.gain);
+      lfo.start();
+      sources.push(lfo);
+      nodes.push(g);
+    };
+    mkGate(chirpGate, 28);
+    mkGate(burstGate, 1.05);
+    chirpGate.connect(burstGate).connect(level).connect(master);
+    nodes.push(chirpGate, burstGate, level);
+    base = 0.5;
   } else {
     // deep
     src.buffer = getNoiseBuffer(ctx, "brown");
@@ -92,18 +235,19 @@ function buildGraph(ctx, kind, volume) {
   master.connect(ctx.destination);
   src.start();
   sources.push(src);
-  return { sources, nodes, master, base };
+  return { sources, nodes, master, base, timers };
 }
 
 function stopGraph(graph) {
   if (!graph) return;
+  (graph.timers || []).forEach((id) => clearTimeout(id));
   graph.sources.forEach((s) => { try { s.stop(); } catch {} });
   graph.sources.forEach((s) => { try { s.disconnect(); } catch {} });
   graph.nodes.forEach((n) => { try { n.disconnect(); } catch {} });
 }
 
 export default function useAmbientSound() {
-  const [ambient, setAmbient] = useState("off"); // "off" | "rain" | "waves" | "deep"
+  const [ambient, setAmbient] = useState("off"); // "off" | AMBIENT_OPTIONS[].value
   const [volume, setVolumeState] = useState(0.5);
   const graphRef = useRef(null);
   const volumeRef = useRef(0.5);

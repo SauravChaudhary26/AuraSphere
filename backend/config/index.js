@@ -74,6 +74,10 @@ const config = {
     },
   },
 
+  // IANA timezone that defines the "day" for streaks and daily windows.
+  // The campus lives in one timezone, so one canonical day keeps streaks fair.
+  dayTimezone: process.env.DAY_TIMEZONE || "Asia/Kolkata",
+
   // Points awarded for various actions (server-authoritative)
   points: {
     goalCompleted: 10,

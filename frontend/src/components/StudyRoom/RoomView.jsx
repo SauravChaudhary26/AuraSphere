@@ -13,10 +13,12 @@ import ReactionBar from "./ReactionBar";
 import ReactionsOverlay from "./ReactionsOverlay";
 import useWebRTC from "./useWebRTC";
 import useAmbientSound from "./useAmbientSound";
+import useOwnedItems from "../../lib/useOwnedItems";
 
 export default function RoomView({ sr, socket }) {
   const { room, participants, timer } = sr;
   const settings = room.settings;
+  const owned = useOwnedItems();
 
   const rtc = useWebRTC({
     socket,
@@ -142,9 +144,14 @@ export default function RoomView({ sr, socket }) {
           onAmbientChange={setAmbient}
           ambientVolume={volume}
           onAmbientVolume={setVolume}
+          ownsSoundPack={owned.has("focus_sound_pack")}
           onLeave={sr.leaveRoom}
         >
-          <ReactionBar onReact={sr.sendReaction} disabled={sr.reactionsLocked} />
+          <ReactionBar
+            onReact={sr.sendReaction}
+            disabled={sr.reactionsLocked}
+            ownsPack={owned.has("reaction_pack")}
+          />
         </ControlBar>
 
         <ReactionsOverlay reactions={sr.reactions} />

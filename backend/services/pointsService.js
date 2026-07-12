@@ -1,15 +1,42 @@
 const mongoose = require("mongoose");
 const User = require("../models/User");
 const AuraTransaction = require("../models/AuraTransaction");
+const { recordActivity } = require("./streakService");
+
+/**
+ * Earns that must NEVER be doubled or count toward the daily streak:
+ * - mystery_box: gambling winnings — boosting them would turn the box into an
+ *   aura printer (2× the prize beats the ticket price on average).
+ * - store_refund: compensation for a failed purchase, not productivity.
+ */
+const EFFECT_EXEMPT_REASONS = new Set(["mystery_box", "store_refund"]);
 
 /**
  * Award aura. Server-authoritative: the amount is chosen by the server (from
  * config.points), never accepted from the client. Records a ledger entry.
+ *
+ * Applies the Double Aura store boost (2× while User.boostUntil is in the
+ * future) and records daily-streak activity, except for exempt reasons.
+ *
+ * Returns { balance, amount, boosted } — `amount` is what was actually
+ * credited (post-boost), so callers can show the real number.
  */
 async function awardPoints(userId, amount, reason, ref = {}) {
   if (typeof amount !== "number" || !Number.isFinite(amount) || amount <= 0) {
     throw new Error("Award amount must be a positive number");
   }
+
+  const exempt = EFFECT_EXEMPT_REASONS.has(reason);
+  let boosted = false;
+  if (!exempt) {
+    const state = await User.findById(userId).select("boostUntil").lean();
+    if (!state) throw new Error("User not found");
+    if (state.boostUntil && new Date(state.boostUntil) > new Date()) {
+      amount *= 2;
+      boosted = true;
+    }
+  }
+
   const user = await User.findByIdAndUpdate(
     userId,
     { $inc: { aura: amount } },
@@ -25,7 +52,15 @@ async function awardPoints(userId, amount, reason, ref = {}) {
     refId: ref.id || null,
     balanceAfter: user.aura,
   });
-  return user.aura;
+
+  if (!exempt) {
+    // Streak bookkeeping must never fail (or double) an award.
+    await recordActivity(userId).catch((err) =>
+      console.error("[points] streak update failed:", err.message)
+    );
+  }
+
+  return { balance: user.aura, amount, boosted };
 }
 
 /**

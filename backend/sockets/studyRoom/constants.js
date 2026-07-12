@@ -1,5 +1,8 @@
 /** Shared constants for the study-room realtime layer. */
 
+// Premium reactions are defined next to the store item that sells them.
+const { PREMIUM_REACTION_EMOJIS } = require("../../services/storeCatalog");
+
 const ROOM_EMOJIS = ["📚", "🎯", "🔥", "🧠", "☕", "🌙", "⚡", "🌸"];
 const REACTION_EMOJIS = ["🔥", "👏", "💪", "☕", "🎉", "🧠", "❤️", "😴"];
 
@@ -48,6 +51,7 @@ const LOBBY_CHANNEL = "__lobby__";
 module.exports = {
   ROOM_EMOJIS,
   REACTION_EMOJIS,
+  PREMIUM_REACTION_EMOJIS,
   DEFAULT_SETTINGS,
   CODE_ALPHABET,
   CODE_LENGTH,

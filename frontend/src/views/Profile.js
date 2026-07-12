@@ -15,6 +15,7 @@ import AuraRing from "../components/ui/AuraRing";
 import api from "../lib/http";
 import { useAuth } from "../contexts/AuthContext";
 import { levelFromAura } from "../utils/aura";
+import { badgeFor, frameClass, nameClass } from "../lib/cosmetics";
 import { handleError, handleSuccess } from "../utils/ToastMessages";
 
 export default function Profile() {
@@ -117,14 +118,23 @@ export default function Profile() {
       <div className="grid gap-5 lg:grid-cols-[300px_1fr]">
         {/* Identity card */}
         <Card className="flex flex-col items-center text-center">
-          <Avatar name={form.name} src={user?.avatar} size={96} />
-          <h2 className="mt-4 text-xl font-bold">{form.name || "Your name"}</h2>
+          <Avatar name={form.name} src={user?.avatar} size={96} frame={frameClass(user?.equipped)} />
+          <h2 className={cx("mt-4 text-xl font-bold", nameClass(user?.equipped))}>
+            {form.name || "Your name"}
+          </h2>
           <p className="mt-1 text-sm text-muted">{form.email}</p>
-          {user?.role && (
-            <Badge variant="neutral" className="mt-3 capitalize">
-              {user.role}
-            </Badge>
-          )}
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+            {badgeFor(user?.equipped) && (
+              <Badge variant="gold">
+                {badgeFor(user?.equipped).emoji} {badgeFor(user?.equipped).label}
+              </Badge>
+            )}
+            {user?.role && (
+              <Badge variant="neutral" className="capitalize">
+                {user.role}
+              </Badge>
+            )}
+          </div>
 
           <div className="mt-6">
             <AuraRing

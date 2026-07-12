@@ -145,18 +145,22 @@ export function ProgressBar({ value = 0, tone = "var(--primary)", className }) {
 }
 
 /* -------------------------------------------------------------------- Avatar */
-export function Avatar({ name = "", src, size = 36, className }) {
+/* `frame` is an Aura Store cosmetic class (see lib/cosmetics.js), rendered as
+   a gradient ring wrapper so it works for both image and initials avatars. */
+export function Avatar({ name = "", src, size = 36, className, frame }) {
   const initials = name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase() || "?";
-  return src ? (
-    <img src={src} alt={name} width={size} height={size} className={cx("rounded-full object-cover", className)} style={{ width: size, height: size }} />
+  const core = src ? (
+    <img src={src} alt={name} width={size} height={size} className={cx("rounded-full object-cover", !frame && className)} style={{ width: size, height: size }} />
   ) : (
     <span
-      className={cx("grid place-items-center rounded-full border border-border bg-surface-2 font-bold text-muted", className)}
+      className={cx("grid place-items-center rounded-full border border-border bg-surface-2 font-bold text-muted", !frame && className)}
       style={{ width: size, height: size, fontSize: size * 0.38 }}
     >
       {initials}
     </span>
   );
+  if (!frame) return core;
+  return <span className={cx("avatar-frame shrink-0", frame, className)}>{core}</span>;
 }
 
 /* ---------------------------------------------------------------- PageHeader */
@@ -264,6 +268,9 @@ export function Tabs({ tabs, active, onChange, className }) {
 }
 
 /* -------------------------------------------------------------------- Switch */
+/* The knob is anchored with an explicit left-0 (never the static position —
+   browsers compute that inconsistently for absolute children of flex items)
+   and moves purely via translate-x. */
 export function Switch({ checked, onChange, disabled, label, className }) {
   return (
     <button
@@ -274,29 +281,36 @@ export function Switch({ checked, onChange, disabled, label, className }) {
       onClick={() => onChange?.(!checked)}
       className={cx("inline-flex items-center gap-2.5", disabled && "cursor-not-allowed opacity-50", className)}
     >
-      <span className={cx("relative h-6 w-10 shrink-0 rounded-full transition-all", checked ? "bg-primary" : "bg-border")}>
+      <span
+        aria-hidden="true"
+        className={cx(
+          "relative h-6 w-11 shrink-0 rounded-full border transition-colors",
+          checked ? "border-transparent bg-primary" : "border-border bg-surface-2"
+        )}
+      >
         <span
           className={cx(
-            "absolute top-1 h-4 w-4 rounded-full bg-surface shadow-card transition-all",
-            checked ? "translate-x-5" : "translate-x-1"
+            "absolute left-0.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 rounded-full bg-white shadow-card transition-transform duration-200",
+            checked ? "translate-x-[22px]" : "translate-x-0"
           )}
         />
       </span>
-      {label && <span className="text-left text-sm text-ink">{label}</span>}
+      {label && <span className="text-left text-sm font-medium text-ink">{label}</span>}
     </button>
   );
 }
 
 /* --------------------------------------------------------------- ThemeToggle */
+const DARK_THEMES = ["dark", "midnight", "terminal"]; // store themes count as their base mode
 export function ThemeToggle({ className }) {
   const toggle = () => {
     const root = document.documentElement;
     const cur = root.getAttribute("data-theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-    const next = cur === "dark" ? "light" : "dark";
+    const next = DARK_THEMES.includes(cur) ? "light" : "dark";
     root.setAttribute("data-theme", next);
     try { localStorage.setItem("theme", next); } catch {}
   };
-  const isDark = typeof document !== "undefined" && document.documentElement.getAttribute("data-theme") === "dark";
+  const isDark = typeof document !== "undefined" && DARK_THEMES.includes(document.documentElement.getAttribute("data-theme"));
   return (
     <button
       onClick={toggle}

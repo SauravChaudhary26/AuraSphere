@@ -56,3 +56,134 @@
 /* Study Rooms — floating emoji reactions */
 @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 0.95; } 100% { transform: translateY(-300px) scale(1.5); opacity: 0; } }
 .animate-float-up { animation: floatUp 2.4s ease-out forwards; }
+
+/* --------------------- Aura Store cosmetics --------------------- */
+
+/* Avatar frames: a gradient ring wrapper around the Avatar component. */
+.avatar-frame {
+  display: inline-grid;
+  place-items: center;
+  padding: 3px;
+  border-radius: 9999px;
+}
+.frame-gold {
+  background: linear-gradient(140deg, #8a5b00, #ffd76a 35%, #b8860b 60%, #ffe9a8);
+  box-shadow: 0 0 10px -2px rgba(212, 175, 55, 0.55);
+}
+@property --frame-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+.frame-aura {
+  background: conic-gradient(
+    from var(--frame-angle),
+    var(--primary),
+    #8b5cf6,
+    var(--jade),
+    var(--primary-bright),
+    var(--primary)
+  );
+  box-shadow: 0 0 16px -2px color-mix(in srgb, var(--primary) 65%, transparent);
+  animation: frame-spin 3.5s linear infinite;
+}
+@keyframes frame-spin {
+  to { --frame-angle: 360deg; }
+}
+
+/* Golden Name — animated shimmer on leaderboard/profile names. */
+.name-gradient {
+  background: linear-gradient(
+    90deg,
+    var(--primary) 0%,
+    var(--primary-bright) 30%,
+    #ffe9a8 50%,
+    var(--primary-bright) 70%,
+    var(--primary) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: name-shimmer 2.8s linear infinite;
+}
+@keyframes name-shimmer {
+  to { background-position: 200% center; }
+}
+
+/* --------------------- Landing page decor --------------------- */
+
+/* Slow-drifting aurora blobs behind the hero. */
+.landing-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(90px);
+  opacity: 0.45;
+  pointer-events: none;
+}
+.landing-blob-gold {
+  background: color-mix(in srgb, var(--primary) 60%, transparent);
+  animation: drift-a 16s ease-in-out infinite;
+}
+.landing-blob-jade {
+  background: color-mix(in srgb, var(--jade) 50%, transparent);
+  animation: drift-b 21s ease-in-out infinite;
+}
+@keyframes drift-a {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(50px, -35px) scale(1.12); }
+}
+@keyframes drift-b {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-60px, 45px) scale(1.16); }
+}
+
+/* Faint dot grid that fades out toward the bottom. */
+.landing-grid-bg {
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--ink) 9%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 26px 26px;
+  -webkit-mask-image: linear-gradient(to bottom, black, transparent 80%);
+  mask-image: linear-gradient(to bottom, black, transparent 80%);
+}
+
+@keyframes bob {
+  0%, 100% { transform: translateY(-5px); }
+  50% { transform: translateY(7px); }
+}
+.animate-bob { animation: bob 5.5s ease-in-out infinite; }
+
+@keyframes hero-glow {
+  0%, 100% { box-shadow: 0 0 44px -16px color-mix(in srgb, var(--primary) 55%, transparent); }
+  50% { box-shadow: 0 0 90px -12px color-mix(in srgb, var(--primary) 75%, transparent); }
+}
+.landing-hero-card { animation: hero-glow 4.5s ease-in-out infinite; }
+
+/* Hover-lift for feature cards. */
+.landing-lift {
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.landing-lift:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+  box-shadow: 0 16px 44px -20px color-mix(in srgb, var(--primary) 40%, transparent);
+}
+
+/* Mystery Box reveal */
+@keyframes box-shake {
+  0%, 100% { transform: rotate(0); }
+  20% { transform: rotate(-12deg) scale(1.05); }
+  40% { transform: rotate(10deg) scale(1.1); }
+  60% { transform: rotate(-8deg) scale(1.12); }
+  80% { transform: rotate(6deg) scale(1.08); }
+}
+.animate-box-shake { animation: box-shake 0.9s ease-in-out infinite; }
+@keyframes prize-pop {
+  0% { transform: scale(0.3); opacity: 0; }
+  60% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.animate-prize-pop { animation: prize-pop 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) forwards; }

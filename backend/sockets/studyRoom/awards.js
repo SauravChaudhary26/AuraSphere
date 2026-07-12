@@ -25,12 +25,12 @@ async function awardOne(userId, { emitToUser, notifyCapReached }) {
     notifyCapReached(userId);
     return;
   }
-  const amount = config.points.studySessionCompleted;
   // No ref: there is no Room model (refId must be an ObjectId).
-  const newBalance = await awardPoints(userId, amount, "study_session_completed");
+  const award = await awardPoints(userId, config.points.studySessionCompleted, "study_session_completed");
   emitToUser(userId, "aura:awarded", {
-    amount,
-    newBalance,
+    amount: award.amount,
+    newBalance: award.balance,
+    boosted: award.boosted,
     reason: "study_session_completed",
   });
 }

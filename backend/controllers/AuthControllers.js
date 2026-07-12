@@ -16,6 +16,7 @@ const publicUser = (u) => ({
   aura: u.aura || 0,
   avatar: u.avatar || null,
   role: u.role || "user",
+  equipped: u.equipped || { badge: null, frame: null, nameEffect: null },
 });
 
 const signup = async (req, res, next) => {

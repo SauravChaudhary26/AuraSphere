@@ -1,4 +1,9 @@
-const { ROOM_EMOJIS, REACTION_EMOJIS, DEFAULT_SETTINGS } = require("./constants");
+const {
+  ROOM_EMOJIS,
+  REACTION_EMOJIS,
+  PREMIUM_REACTION_EMOJIS,
+  DEFAULT_SETTINGS,
+} = require("./constants");
 
 /** Never trust client payloads — everything below clamps/sanitizes to spec bounds. */
 
@@ -53,7 +58,10 @@ function sanitizeCode(code) {
   return typeof code === "string" ? code.trim().toUpperCase() : "";
 }
 
-const isValidReaction = (emoji) => REACTION_EMOJIS.includes(emoji);
+/** Free reactions for everyone; premium ones only with the store Reaction Pack. */
+const isValidReaction = (emoji, hasPremium = false) =>
+  REACTION_EMOJIS.includes(emoji) ||
+  (hasPremium && PREMIUM_REACTION_EMOJIS.includes(emoji));
 
 /**
  * Full-replace goals list: ≤5 items of { id (string ≤40), text (1..100), done }.
