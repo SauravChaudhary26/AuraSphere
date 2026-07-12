@@ -97,3 +97,203 @@
   --shadow: 0 1px 2px rgba(0,0,0,.5), 0 18px 40px -18px rgba(0,0,0,.8);
   --glow: 0 0 40px -6px rgba(53,208,88,.4); color-scheme: dark;
 }
+
+/* Paper — e-ink monochrome light: black ink on soft paper. */
+:root[data-theme="paper"] {
+  --ground: #f7f7f5; --surface: #ffffff; --surface-2: #eeeeeb; --ink: #1a1a18;
+  --muted: #62625e; --faint: #97978f; --border: #e2e2de; --primary: #1f1f1d;
+  --primary-bright: #3c3c38; --on-primary: #ffffff; --jade: #0ca678; --success: #2f9e44;
+  --warning: #a16207; --danger: #c92a2a; --ring-track: #e7e7e3;
+  --shadow: 0 1px 2px rgba(26,26,24,.06), 0 8px 24px -12px rgba(26,26,24,.16);
+  --glow: 0 0 0 rgba(31,31,29,0); color-scheme: light;
+}
+
+/* Frost — crisp ice-blue on arctic white. */
+:root[data-theme="frost"] {
+  --ground: #f3f7fb; --surface: #ffffff; --surface-2: #e6eef7; --ink: #17222e;
+  --muted: #5b6b7d; --faint: #8fa0b3; --border: #d8e3f0; --primary: #1971c2;
+  --primary-bright: #339af0; --on-primary: #ffffff; --jade: #0ca678; --success: #37b24d;
+  --warning: #e8890c; --danger: #e03131; --ring-track: #dfe9f4;
+  --shadow: 0 1px 2px rgba(23,34,46,.06), 0 8px 24px -12px rgba(25,113,194,.16);
+  --glow: 0 0 0 rgba(51,154,240,0); color-scheme: light;
+}
+
+/* Dune — sun-baked sand and terracotta. */
+:root[data-theme="dune"] {
+  --ground: #faf3ea; --surface: #ffffff; --surface-2: #f3e7d7; --ink: #2e2318;
+  --muted: #7d6a54; --faint: #ab9880; --border: #e9dac4; --primary: #c2410c;
+  --primary-bright: #ea580c; --on-primary: #ffffff; --jade: #0ca678; --success: #2f9e44;
+  --warning: #c98a08; --danger: #e03131; --ring-track: #eee0cb;
+  --shadow: 0 1px 2px rgba(46,35,24,.06), 0 8px 24px -12px rgba(46,35,24,.18);
+  --glow: 0 0 0 rgba(234,88,12,0); color-scheme: light;
+}
+
+/* Lagoon — clear tropical aqua over white-sand shallows. */
+:root[data-theme="lagoon"] {
+  --ground: #effaf8; --surface: #ffffff; --surface-2: #dcf2ee; --ink: #143230;
+  --muted: #4f7370; --faint: #86aaa6; --border: #cfe8e3; --primary: #0b7285;
+  --primary-bright: #15aabf; --on-primary: #ffffff; --jade: #0ca678; --success: #37b24d;
+  --warning: #e8890c; --danger: #e03131; --ring-track: #d4ece7;
+  --shadow: 0 1px 2px rgba(20,50,48,.06), 0 8px 24px -12px rgba(11,114,133,.16);
+  --glow: 0 0 0 rgba(21,170,191,0); color-scheme: light;
+}
+
+/* Matcha — fresh-whisked greens on warm cream. */
+:root[data-theme="matcha"] {
+  --ground: #f4f7ec; --surface: #ffffff; --surface-2: #e9f0da; --ink: #1f2a17;
+  --muted: #5f6f50; --faint: #93a184; --border: #dde7c9; --primary: #4d7c0f;
+  --primary-bright: #65a30d; --on-primary: #ffffff; --jade: #0ca678; --success: #2f9e44;
+  --warning: #e8890c; --danger: #e03131; --ring-track: #e2ebce;
+  --shadow: 0 1px 2px rgba(31,42,23,.06), 0 8px 24px -12px rgba(31,42,23,.18);
+  --glow: 0 0 0 rgba(101,163,13,0); color-scheme: light;
+}
+
+/* Lilac — airy lavender pastels, gentle focus. */
+:root[data-theme="lilac"] {
+  --ground: #f8f4fd; --surface: #ffffff; --surface-2: #efe6fb; --ink: #241a33;
+  --muted: #6f6187; --faint: #a396bb; --border: #e4d7f4; --primary: #7048e8;
+  --primary-bright: #845ef7; --on-primary: #ffffff; --jade: #0ca678; --success: #37b24d;
+  --warning: #e8890c; --danger: #e03131; --ring-track: #e9ddf7;
+  --shadow: 0 1px 2px rgba(36,26,51,.06), 0 8px 24px -12px rgba(112,72,232,.16);
+  --glow: 0 0 0 rgba(132,94,247,0); color-scheme: light;
+}
+
+/* Coral — golden-hour peach and coral. */
+:root[data-theme="coral"] {
+  --ground: #fff4ee; --surface: #ffffff; --surface-2: #ffe8dc; --ink: #33221c;
+  --muted: #8a685c; --faint: #b8988a; --border: #f6d9c8; --primary: #e8590c;
+  --primary-bright: #f76707; --on-primary: #ffffff; --jade: #0ca678; --success: #37b24d;
+  --warning: #c98a08; --danger: #e03131; --ring-track: #fadfd0;
+  --shadow: 0 1px 2px rgba(51,34,28,.06), 0 8px 24px -12px rgba(232,89,12,.16);
+  --glow: 0 0 0 rgba(247,103,7,0); color-scheme: light;
+}
+
+/* Graphite — pure monochrome dark, silver on charcoal. */
+:root[data-theme="graphite"] {
+  --ground: #101012; --surface: #18181b; --surface-2: #222226; --ink: #f2f2f3;
+  --muted: #a1a1a8; --faint: #6c6c73; --border: #2c2c31; --primary: #d4d4dc;
+  --primary-bright: #ececf2; --on-primary: #1a1a1e; --jade: #7fd4c4; --success: #57c973;
+  --warning: #d8b45a; --danger: #e07a7a; --ring-track: #26262b;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 18px 40px -18px rgba(0,0,0,.7);
+  --glow: 0 0 36px -8px rgba(212,212,220,.25); color-scheme: dark;
+}
+
+/* Espresso — dark-roast browns with caramel crema. */
+:root[data-theme="espresso"] {
+  --ground: #120d09; --surface: #1d1510; --surface-2: #291e16; --ink: #f3ebe2;
+  --muted: #b3a091; --faint: #7d6d5d; --border: #382a1e; --primary: #dda15e;
+  --primary-bright: #f0bc80; --on-primary: #2a1a06; --jade: #2bd4b0; --success: #43c76a;
+  --warning: #ec9245; --danger: #e96a6a; --ring-track: #2f2318;
+  --shadow: 0 1px 2px rgba(0,0,0,.45), 0 18px 40px -18px rgba(0,0,0,.75);
+  --glow: 0 0 40px -6px rgba(221,161,94,.4); color-scheme: dark;
+}
+
+/* Evergreen — misty spruce and cool mint at dusk. */
+:root[data-theme="evergreen"] {
+  --ground: #071510; --surface: #0c211a; --surface-2: #133026; --ink: #e6f5ec;
+  --muted: #93b8a4; --faint: #5c8270; --border: #1b3b2d; --primary: #34d399;
+  --primary-bright: #5ceab4; --on-primary: #032418; --jade: #2bd4b0; --success: #43c76a;
+  --warning: #f0a44a; --danger: #ef6f6f; --ring-track: #10281f;
+  --shadow: 0 1px 2px rgba(0,0,0,.45), 0 18px 40px -18px rgba(0,0,0,.75);
+  --glow: 0 0 40px -6px rgba(52,211,153,.4); color-scheme: dark;
+}
+
+/* Glacier — cool nordic greys with ice-blue accents. */
+:root[data-theme="glacier"] {
+  --ground: #10141c; --surface: #171c26; --surface-2: #202634; --ink: #eceff4;
+  --muted: #9aa5b5; --faint: #626e80; --border: #2a3140; --primary: #74c0fc;
+  --primary-bright: #a5d8ff; --on-primary: #0b2438; --jade: #2bd4b0; --success: #43c76a;
+  --warning: #f0a44a; --danger: #ef6f6f; --ring-track: #1c2230;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 18px 40px -18px rgba(0,0,0,.7);
+  --glow: 0 0 40px -8px rgba(116,192,252,.35); color-scheme: dark;
+}
+
+/* Storm — charged electric blue on thunderhead slate. */
+:root[data-theme="storm"] {
+  --ground: #0d1117; --surface: #141a23; --surface-2: #1d2531; --ink: #edf2f9;
+  --muted: #96a3b8; --faint: #5f6b7f; --border: #263143; --primary: #3d8bfd;
+  --primary-bright: #6fb1ff; --on-primary: #071c33; --jade: #2bd4b0; --success: #43c76a;
+  --warning: #f0a44a; --danger: #ef6f6f; --ring-track: #1a2332;
+  --shadow: 0 1px 2px rgba(0,0,0,.45), 0 18px 40px -18px rgba(0,0,0,.75);
+  --glow: 0 0 40px -6px rgba(61,139,253,.4); color-scheme: dark;
+}
+
+/* Velvet — plush indigo with periwinkle light. */
+:root[data-theme="velvet"] {
+  --ground: #0d102a; --surface: #141838; --surface-2: #1c2148; --ink: #eceefc;
+  --muted: #9aa1cc; --faint: #646b99; --border: #262c58; --primary: #8494ff;
+  --primary-bright: #a5b1ff; --on-primary: #0e133a; --jade: #2bd4b0; --success: #43c76a;
+  --warning: #f0a44a; --danger: #ef6f6f; --ring-track: #191e44;
+  --shadow: 0 1px 2px rgba(0,0,0,.45), 0 18px 44px -16px rgba(6,8,30,.8);
+  --glow: 0 0 40px -6px rgba(132,148,255,.4); color-scheme: dark;
+}
+
+/* Amethyst — royal violet with a crystal glow. */
+:root[data-theme="amethyst"] {
+  --ground: #0e0a1a; --surface: #171029; --surface-2: #21183a; --ink: #f0eafb;
+  --muted: #a99cc9; --faint: #6f6390; --border: #2b2148; --primary: #a78bfa;
+  --primary-bright: #c4b0ff; --on-primary: #1c1035; --jade: #2bd4b0; --success: #43c76a;
+  --warning: #f0a44a; --danger: #ef6f6f; --ring-track: #1e1633;
+  --shadow: 0 1px 2px rgba(0,0,0,.45), 0 18px 44px -16px rgba(10,5,26,.8);
+  --glow: 0 0 44px -6px rgba(167,139,250,.45); color-scheme: dark;
+}
+
+/* Rosewood — deep wine with rose-gold shimmer. */
+:root[data-theme="rosewood"] {
+  --ground: #170b10; --surface: #221118; --surface-2: #2f1822; --ink: #f9ecf1;
+  --muted: #c39aab; --faint: #8a6275; --border: #3f2230; --primary: #ea7a9a;
+  --primary-bright: #f79ab5; --on-primary: #33081a; --jade: #2bd4b0; --success: #43c76a;
+  --warning: #f0a44a; --danger: #f06262; --ring-track: #291420;
+  --shadow: 0 1px 2px rgba(0,0,0,.45), 0 18px 40px -18px rgba(0,0,0,.75);
+  --glow: 0 0 40px -6px rgba(234,122,154,.4); color-scheme: dark;
+}
+
+/* Abyss — bioluminescent cyan over deep-sea navy. */
+:root[data-theme="abyss"] {
+  --ground: #05121c; --surface: #0a1b29; --surface-2: #10283b; --ink: #e3f2fb;
+  --muted: #8fb3c9; --faint: #567995; --border: #16324a; --primary: #2cc7ee;
+  --primary-bright: #5adcff; --on-primary: #04242e; --jade: #2bd4b0; --success: #43c76a;
+  --warning: #f0a44a; --danger: #ef6f6f; --ring-track: #0f2a3d;
+  --shadow: 0 1px 2px rgba(0,0,0,.5), 0 18px 44px -16px rgba(2,10,18,.85);
+  --glow: 0 0 44px -6px rgba(44,199,238,.4); color-scheme: dark;
+}
+
+/* Ember — warm charcoal with ember orange, campfire cozy. */
+:root[data-theme="ember"] {
+  --ground: #140d0a; --surface: #1f1512; --surface-2: #2b1d18; --ink: #f7ede6;
+  --muted: #bfa294; --faint: #8a6f62; --border: #3a281f; --primary: #ff6b3d;
+  --primary-bright: #ff8a5c; --on-primary: #2b0f04; --jade: #2bd4b0; --success: #43c76a;
+  --warning: #e8c14a; --danger: #f2555a; --ring-track: #251712;
+  --shadow: 0 1px 2px rgba(0,0,0,.45), 0 18px 40px -18px rgba(0,0,0,.75);
+  --glow: 0 0 42px -6px rgba(255,107,61,.42); color-scheme: dark;
+}
+
+/* Aurora — northern lights over an arctic night sky. */
+:root[data-theme="aurora"] {
+  --ground: #0a1220; --surface: #101a2e; --surface-2: #16243f; --ink: #eaf3f5;
+  --muted: #94aebd; --faint: #5c7386; --border: #1c3049; --primary: #3ce6b0;
+  --primary-bright: #6ffacb; --on-primary: #04261b; --jade: #22b8cf; --success: #43c76a;
+  --warning: #f0a44a; --danger: #ef6f6f; --ring-track: #132038;
+  --shadow: 0 1px 2px rgba(0,0,0,.45), 0 18px 44px -16px rgba(4,9,20,.8);
+  --glow: 0 0 46px -6px rgba(60,230,176,.45); color-scheme: dark;
+}
+
+/* Neon — hot magenta on cyber black, downtown at 2am. */
+:root[data-theme="neon"] {
+  --ground: #0a0612; --surface: #130b1f; --surface-2: #1d1230; --ink: #f4ecff;
+  --muted: #b39cd0; --faint: #75619a; --border: #2c1b49; --primary: #ef4bbe;
+  --primary-bright: #ff7ad9; --on-primary: #2e0524; --jade: #2ee6d6; --success: #43c76a;
+  --warning: #f0a44a; --danger: #ef6f6f; --ring-track: #191033;
+  --shadow: 0 1px 2px rgba(0,0,0,.5), 0 18px 44px -16px rgba(5,2,12,.85);
+  --glow: 0 0 48px -6px rgba(239,75,190,.5); color-scheme: dark;
+}
+
+/* Obsidian — pure OLED black with molten gold. */
+:root[data-theme="obsidian"] {
+  --ground: #000000; --surface: #0b0b0d; --surface-2: #16161a; --ink: #f5f2e9;
+  --muted: #a39d8e; --faint: #6b665c; --border: #232326; --primary: #f0b429;
+  --primary-bright: #ffd257; --on-primary: #231a05; --jade: #26c6a6; --success: #3fbe63;
+  --warning: #ec9245; --danger: #e96a6a; --ring-track: #1c1c20;
+  --shadow: 0 1px 2px rgba(0,0,0,.6), 0 18px 44px -16px rgba(0,0,0,.9);
+  --glow: 0 0 48px -6px rgba(240,180,41,.55); color-scheme: dark;
+}

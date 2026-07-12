@@ -1,3 +1,5 @@
+const fs = require("fs");
+const path = require("path");
 const {
   STORE_CATALOG,
   getStoreItem,
@@ -8,7 +10,7 @@ const {
 const { REACTION_EMOJIS } = require("../sockets/studyRoom/constants");
 
 const KINDS = ["consumable", "unlock", "equippable"];
-const CATEGORIES = ["power-ups", "cosmetics", "fun"];
+const CATEGORIES = ["power-ups", "themes", "cosmetics", "fun"];
 const SLOTS = ["badge", "frame", "nameEffect"];
 
 describe("storeCatalog", () => {
@@ -37,10 +39,32 @@ describe("storeCatalog", () => {
     }
   });
 
-  it("themes carry the theme id their CSS is keyed on", () => {
+  describe("themes", () => {
     const themes = STORE_CATALOG.filter((i) => i.key.startsWith("theme_"));
-    expect(themes.length).toBeGreaterThanOrEqual(3);
-    for (const t of themes) expect(t.effect?.theme).toBeTruthy();
+
+    it("stocks a full wardrobe in its own section", () => {
+      expect(themes.length).toBeGreaterThanOrEqual(20);
+      for (const t of themes) {
+        expect(t.category).toBe("themes");
+        expect(t.kind).toBe("unlock");
+      }
+    });
+
+    it("theme ids are present and unique", () => {
+      const ids = themes.map((t) => t.effect?.theme);
+      for (const id of ids) expect(id).toBeTruthy();
+      expect(new Set(ids).size).toBe(ids.length);
+    });
+
+    it("every theme has its token block in the frontend CSS", () => {
+      // The frontend token sheet IS the consumer of a theme unlock; selling a
+      // theme with no [data-theme] block would deliver a broken product.
+      const cssPath = path.join(__dirname, "../../frontend/src/styles/tokens.css");
+      const css = fs.readFileSync(cssPath, "utf8");
+      for (const t of themes) {
+        expect(css).toContain(`[data-theme="${t.effect.theme}"]`);
+      }
+    });
   });
 
   it("getStoreItem resolves known keys and rejects unknown ones", () => {
@@ -75,15 +99,15 @@ describe("storeCatalog", () => {
     });
 
     it("rolls deterministically across the cumulative boundaries", () => {
-      expect(rollMysteryPrize(0)).toBe(20);
-      expect(rollMysteryPrize(0.3499)).toBe(20);
-      expect(rollMysteryPrize(0.35)).toBe(50);
-      expect(rollMysteryPrize(0.649)).toBe(50);
-      expect(rollMysteryPrize(0.65)).toBe(100);
-      expect(rollMysteryPrize(0.85)).toBe(150);
-      expect(rollMysteryPrize(0.95)).toBe(400);
-      expect(rollMysteryPrize(0.999999)).toBe(400);
-      expect(rollMysteryPrize(1)).toBe(400); // defensive: rand01 should be < 1
+      expect(rollMysteryPrize(0)).toBe(30);
+      expect(rollMysteryPrize(0.3499)).toBe(30);
+      expect(rollMysteryPrize(0.35)).toBe(75);
+      expect(rollMysteryPrize(0.649)).toBe(75);
+      expect(rollMysteryPrize(0.65)).toBe(150);
+      expect(rollMysteryPrize(0.85)).toBe(225);
+      expect(rollMysteryPrize(0.95)).toBe(600);
+      expect(rollMysteryPrize(0.999999)).toBe(600);
+      expect(rollMysteryPrize(1)).toBe(600); // defensive: rand01 should be < 1
     });
 
     it("random rolls always land on a defined prize", () => {

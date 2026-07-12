@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useDispatch } from "react-redux";
-import { Sparkles, ShoppingBag, Check, Zap, Palette, Gift, Flame } from "lucide-react";
+import { Sparkles, ShoppingBag, Check, Zap, Palette, Gift, Flame, Crown } from "lucide-react";
 import {
   PageHeader,
   Button,
@@ -13,7 +13,7 @@ import {
 import api from "../lib/http";
 import { fetchPoints } from "../utils/redux/pointsSlice";
 import { invalidateOwnedItems } from "../lib/useOwnedItems";
-import { applyTheme, currentTheme } from "../lib/cosmetics";
+import { applyTheme, currentTheme, PREMIUM_THEMES } from "../lib/cosmetics";
 import { fireConfetti } from "../components/StudyRoom/confetti";
 import { useAuth } from "../contexts/AuthContext";
 import { handleError, handleSuccess } from "../utils/ToastMessages";
@@ -21,7 +21,8 @@ import { handleError, handleSuccess } from "../utils/ToastMessages";
 /* Friendly labels + icons for the known categories; unknown ones fall back. */
 const CATEGORY_META = {
   "power-ups": { label: "Power-ups", icon: <Zap size={16} /> },
-  cosmetics: { label: "Cosmetics", icon: <Palette size={16} /> },
+  themes: { label: "Themes", icon: <Palette size={16} /> },
+  cosmetics: { label: "Cosmetics", icon: <Crown size={16} /> },
   fun: { label: "Fun & Goodies", icon: <Gift size={16} /> },
 };
 
@@ -77,6 +78,26 @@ function StatusPill({ children, tone = "var(--warning)", title }) {
   );
 }
 
+/* Mini app mock-up painted with a theme's own palette — shown on theme cards. */
+function ThemePreview({ preview }) {
+  return (
+    <div
+      className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl"
+      style={{ background: preview.bg, border: "1px solid var(--border)" }}
+      aria-hidden="true"
+    >
+      <div
+        className="flex h-10 w-11 flex-col gap-1 rounded-lg p-1.5"
+        style={{ background: preview.card, boxShadow: "0 1px 4px rgba(0,0,0,.25)" }}
+      >
+        <span className="block h-1.5 w-6 rounded-full" style={{ background: preview.ink }} />
+        <span className="block h-1.5 w-4 rounded-full opacity-40" style={{ background: preview.ink }} />
+        <span className="mt-auto block h-2 w-2 self-end rounded-full" style={{ background: preview.accent }} />
+      </div>
+    </div>
+  );
+}
+
 function StoreItemCard({ item, balance, themeNow, busyKey, onRedeem, onEquip, onApplyTheme }) {
   const owned = !!item.owned;
   const oneTime = item.kind !== "consumable";
@@ -100,16 +121,22 @@ function StoreItemCard({ item, balance, themeNow, busyKey, onRedeem, onEquip, on
     ? "Redeem again"
     : "Redeem";
 
+  const themePreview = PREMIUM_THEMES[item.key]?.preview;
+
   return (
     <Card className="flex flex-col">
       <div className="flex items-start justify-between gap-3">
-        <div
-          className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl text-[34px] leading-none"
-          style={{ background: "color-mix(in srgb, var(--primary) 12%, transparent)" }}
-          aria-hidden="true"
-        >
-          {item.icon || "✨"}
-        </div>
+        {themePreview ? (
+          <ThemePreview preview={themePreview} />
+        ) : (
+          <div
+            className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl text-[34px] leading-none"
+            style={{ background: "color-mix(in srgb, var(--primary) 12%, transparent)" }}
+            aria-hidden="true"
+          >
+            {item.icon || "✨"}
+          </div>
+        )}
         <div className="flex flex-col items-end gap-1.5">
           {owned && oneTime && (
             <Badge variant="jade">
@@ -194,7 +221,10 @@ function StoreItemCard({ item, balance, themeNow, busyKey, onRedeem, onEquip, on
   );
 }
 
-/* The Mystery Box reveal: shake… then pop the prize. */
+/* The Mystery Box reveal: shake… then pop the prize.
+   Tier thresholds mirror MYSTERY_PRIZES in backend/services/storeCatalog.js. */
+const PRIZE_JACKPOT = 600; // the top prize
+const PRIZE_BIG = 225; // beats the ticket price
 function MysteryReveal({ reveal, onClose, onAgain, canAfford }) {
   const [shown, setShown] = useState(false);
 
@@ -203,7 +233,7 @@ function MysteryReveal({ reveal, onClose, onAgain, canAfford }) {
     setShown(false);
     const t = setTimeout(() => {
       setShown(true);
-      if (reveal.prize >= 150) fireConfetti();
+      if (reveal.prize >= PRIZE_BIG) fireConfetti();
     }, 1100);
     return () => clearTimeout(t);
   }, [reveal]);
@@ -222,14 +252,14 @@ function MysteryReveal({ reveal, onClose, onAgain, canAfford }) {
         ) : (
           <>
             <div className="animate-prize-pop text-[56px] leading-none" aria-hidden="true">
-              {reveal.prize >= 400 ? "🌟" : reveal.prize >= 150 ? "💰" : "✨"}
+              {reveal.prize >= PRIZE_JACKPOT ? "🌟" : reveal.prize >= PRIZE_BIG ? "💰" : "✨"}
             </div>
             <div className="animate-prize-pop">
               <div className="mono text-3xl font-extrabold text-primary">+{reveal.prize}</div>
               <div className="mt-1 text-sm text-muted">
-                {reveal.prize >= 400
+                {reveal.prize >= PRIZE_JACKPOT
                   ? "JACKPOT! The box was feeling generous."
-                  : reveal.prize >= 150
+                  : reveal.prize >= PRIZE_BIG
                   ? "Nice pull — that beats the ticket price!"
                   : "The box giveth… modestly."}
               </div>
@@ -262,7 +292,7 @@ export default function Store() {
   const [busyKey, setBusyKey] = useState(null);
   const [reveal, setReveal] = useState(null);
   const [themeNow, setThemeNow] = useState(currentTheme());
-  const mysteryCost = useRef(100);
+  const mysteryCost = useRef(150);
 
   const load = useCallback(async () => {
     try {
@@ -354,7 +384,7 @@ export default function Store() {
     (acc[key] = acc[key] || []).push(item);
     return acc;
   }, {});
-  const order = ["power-ups", "cosmetics", "fun"];
+  const order = ["power-ups", "themes", "cosmetics", "fun"];
   const categoryKeys = [
     ...order.filter((k) => groups[k]),
     ...Object.keys(groups).filter((k) => !order.includes(k)),
@@ -367,7 +397,7 @@ export default function Store() {
       <PageHeader
         eyebrow="Rewards"
         title="Aura Store"
-        subtitle="Spend the Aura you've earned on power-ups, cosmetics and fun."
+        subtitle="Spend the Aura you've earned on power-ups, themes, cosmetics and fun."
         actions={
           <div className="flex flex-wrap items-center justify-end gap-2">
             {streak && (
@@ -415,7 +445,12 @@ export default function Store() {
                   <h2 className="text-lg font-bold">{meta.label}</h2>
                   <span className="text-sm text-faint">({groups[key].length})</span>
                 </div>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {/* Themes is a big section — allow a 4th column on wide screens. */}
+                <div
+                  className={`grid gap-4 sm:grid-cols-2 lg:grid-cols-3 ${
+                    key === "themes" ? "xl:grid-cols-4" : ""
+                  }`}
+                >
                   {groups[key].map((item) => (
                     <StoreItemCard
                       key={item.key}

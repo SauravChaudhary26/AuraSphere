@@ -1,6 +1,7 @@
 import { useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { X, Loader2, Sun, Moon, Inbox } from "lucide-react";
+import { isDarkTheme } from "../../lib/cosmetics";
 
 /* ----------------------------------------------------------------- utilities */
 export const cx = (...c) => c.filter(Boolean).join(" ");
@@ -301,16 +302,16 @@ export function Switch({ checked, onChange, disabled, label, className }) {
 }
 
 /* --------------------------------------------------------------- ThemeToggle */
-const DARK_THEMES = ["dark", "midnight", "terminal"]; // store themes count as their base mode
+/* Store themes count as their base mode (isDarkTheme knows the registry). */
 export function ThemeToggle({ className }) {
   const toggle = () => {
     const root = document.documentElement;
     const cur = root.getAttribute("data-theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-    const next = DARK_THEMES.includes(cur) ? "light" : "dark";
+    const next = isDarkTheme(cur) ? "light" : "dark";
     root.setAttribute("data-theme", next);
     try { localStorage.setItem("theme", next); } catch {}
   };
-  const isDark = typeof document !== "undefined" && DARK_THEMES.includes(document.documentElement.getAttribute("data-theme"));
+  const isDark = typeof document !== "undefined" && isDarkTheme(document.documentElement.getAttribute("data-theme"));
   return (
     <button
       onClick={toggle}
